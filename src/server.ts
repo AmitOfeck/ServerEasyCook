@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 
 const app = express();
 
-dotenv.config({ path: './config/.env.local' });
+dotenv.config({ path: `./config/.env.${process.env.NODE_ENV || 'local'}` });
 const PORT = process.env.PORT || 4000;
 
 const dbUrl = process.env.DB_URL;
