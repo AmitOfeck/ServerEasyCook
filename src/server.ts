@@ -1,7 +1,14 @@
 import express, { Request, Response, NextFunction } from 'express';
+import * as dotenv from 'dotenv';
+
 
 const app = express();
-const PORT = 3000;
+
+dotenv.config({ path: './config/.env.local' });
+const PORT = process.env.PORT || 4000;
+
+const dbUrl = process.env.DB_URL;
+console.log('Database URL:', dbUrl);
 
 app.use(express.json());
 
