@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import * as dotenv from 'dotenv';
+import mongoose from 'mongoose';
 
 
 const app = express();
@@ -7,10 +8,18 @@ const app = express();
 dotenv.config({ path: `./config/.env.${process.env.NODE_ENV || 'local'}` });
 const PORT = process.env.PORT || 4000;
 
-const dbUrl = process.env.DB_URL;
-console.log('Database URL:', dbUrl);
 
 app.use(express.json());
+
+mongoose
+  .connect(process.env.DB_URL as string) 
+  .then(() => {
+    console.log('Connected to MongoDB');
+  })
+  .catch((err) => {
+    console.log('Error connecting to MongoDB:', err);
+  });
+
 
 app.get('/', (req: Request, res: Response) => {
     res.send('Welcome to my TypeScript Express server!');
