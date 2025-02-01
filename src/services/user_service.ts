@@ -1,11 +1,10 @@
 import UserModel from '../models/user_model';
 import { IUser } from '../models/user_model';
 import bcrypt from 'bcrypt';
-import { upload } from '../utils/files';
 
 class UserService {
 
-  async createUser(userData: IUser, file: any) {
+  async createUser(userData: IUser) {
     const password = userData.password;
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -13,9 +12,8 @@ class UserService {
     
     const user = new UserModel( userData );
     
-    if(file) {
-        upload.single(file);
-        const imageUrl = `/uploads/${file.filename}`;
+    if(userData.profileImage) {
+      const imageUrl = `/uploads/${userData.profileImage}`;
         userData.profileImage = imageUrl;
     }
 

@@ -1,24 +1,14 @@
 import { Request, Response } from 'express';
-import {adressMandatoryFields, IUser, userMandatoryFields} from '../models/user_model';
 import userService from '../services/user_service';
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { Document } from 'mongoose';
-import { OAuth2Client } from 'google-auth-library';
-import { validateMandatoryFields } from '../utils/validations';
 
 const register = async (req: Request, res: Response) => {
-    console.log("1", req.body);
     try {
-        if (!validateMandatoryFields(req.body, userMandatoryFields) ||
-            !validateMandatoryFields(req.body?.addresses[0], adressMandatoryFields)) {
-            res.status(400).json({ message: 'missing fields, can not register user.' });
-            return;
-        } 
-        const user = await userService.createUser(req.body, req.file);
+        req.body.addresses = JSON.parse(req.body.addresses); 
+        req.body.profileImage = req.file?.filename;
+        const user = await userService.createUser(req.body);
         res.status(200).send(user);
     } catch (err) {
-        console.log("2", err);
+        console.log(err);
         res.status(400).send(err);
     }
 };
