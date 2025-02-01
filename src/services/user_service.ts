@@ -20,8 +20,12 @@ class UserService {
     return user.save();
   }
 
-  async getUser(userId: string) {
+  async getUserById(userId: string) {
     return UserModel.findById(userId);
+  }
+
+  async getUserByEmail(userEmail: string) {
+    return UserModel.find({ email: userEmail });
   }
 
 }
