@@ -1,18 +1,6 @@
 import { Request, Response } from 'express';
 import userService from '../services/user_service';
 
-const register = async (req: Request, res: Response) => {
-    try {
-        req.body.addresses = JSON.parse(req.body.addresses); 
-        req.body.profileImage = req.file?.filename;
-        const user = await userService.createUser(req.body);
-        res.status(200).send(user);
-    } catch (err) {
-        console.log(err);
-        res.status(400).send(err);
-    }
-};
-
 /*type tTokens = {
     accessToken: string;
     refreshToken: string;
@@ -221,5 +209,4 @@ const googleSignin = async (req: Request, res: Response): Promise<void> => {
 };*/
 
 export default {
-    register
 };
