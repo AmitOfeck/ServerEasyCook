@@ -7,7 +7,7 @@ interface IAddress {
     building: number;
 }
 
-interface IUser {
+export interface IUser {
     _id?: ObjectId;
     name: string;
     email: string;
@@ -31,6 +31,9 @@ const userSchema = new mongoose.Schema<IUser>({
   profileImage: { type: String },
   refreshToken: { type: String, required: false, unique: true, sparse: true }
 });
+
+export const userMandatoryFields: (keyof IUser)[] = ['name', 'email', 'password', 'addresses'];
+export const adressMandatoryFields: (keyof IAddress)[] = ['city', 'street', 'building'];
 
 const User = mongoose.model<IUser>('Users', userSchema);
 export default User;
