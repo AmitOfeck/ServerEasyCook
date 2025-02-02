@@ -28,7 +28,7 @@ const validateRegister = async (req: Request, res: Response, next: NextFunction)
     next();
 };
 
-router.get(":id", userController.getUserProfile);
+router.get("/:id", userController.getUserProfile);
 
 router.post("/register", upload.single("profileImage"), validateRegister, userController.register);
 

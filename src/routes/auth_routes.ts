@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post("/login", authController.login);
 
-//router.post("/google/login", authController.googleSignin);
+router.post("/google/login", authController.googleSignin);
 
 router.post("/refresh", authController.refresh);
 

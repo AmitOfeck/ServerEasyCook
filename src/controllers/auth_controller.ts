@@ -2,8 +2,9 @@ import { Request, Response } from 'express';
 import userService from '../services/user_service';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
-import mongoose, { Document } from 'mongoose';
+import mongoose from 'mongoose';
 import { IUser } from '../models/user_model';
+import { OAuth2Client } from 'google-auth-library';
 
 type tTokens = {
     accessToken: string;
@@ -121,7 +122,40 @@ const refresh = async (req: Request, res: Response) => {
     }
 };
 
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const googleSignin = async (req: Request, res: Response) => {
+  try {
+    const { token } = req.body;
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const email = payload?.email;
+    const googleId = payload?.sub; 
+    
+    let user = (await userService.getUserByEmail(email!))[0];
+
+    if (!user) {
+      user = await userService.createUser({
+        email: email!,
+        name: payload?.name || '', 
+        profileImage: payload?.picture || '', 
+        password: 'google-signin',
+        googleId, 
+      });
+    }
+
+    const tokens = await generateToken(user._id!);
+    res.status(200).send({_id: user._id,...tokens});
+  } catch (err) {
+    res.status(500).send(err);
+  }
+};
+
 export default {
     login,
-    refresh
+    refresh,
+    googleSignin
 };

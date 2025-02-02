@@ -14,6 +14,7 @@ export interface IUser {
     password: string;
     profileImage?: string;
     addresses? : [IAddress];
+    googleId? : string;
 }
 
 const addressSchema = new mongoose.Schema<IAddress>({
@@ -27,7 +28,8 @@ const userSchema = new mongoose.Schema<IUser>({
   password: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   addresses: { type: [addressSchema] , required: false },
-  profileImage: { type: String }
+  profileImage: { type: String },
+  googleId: { type: String, required: false }
 });
 
 export const userMandatoryFields: (keyof IUser)[] = ['name', 'email', 'password', 'addresses'];
