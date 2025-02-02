@@ -24,7 +24,7 @@ class UserService {
     return UserModel.findById(userId);
   }
 
-  async getUserByEmail(userEmail: string) {
+  async getUserByEmail(userEmail: string) : Promise<IUser[]> {
     return UserModel.find({ email: userEmail });
   }
 
