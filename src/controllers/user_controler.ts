@@ -12,7 +12,7 @@ const getUserProfile = async (req: Request, res: Response) => {
 
 const register = async (req: Request, res: Response) => {
     try {
-        req.body.addresses = JSON.parse(req.body.addresses); 
+        //req.body.addresses = JSON.parse(req.body.addresses); 
         req.body.profileImage = req.file?.filename;
         const user = await userService.createUser(req.body);
         res.status(200).send(user);

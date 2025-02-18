@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema<IUser>({
   googleId: { type: String, required: false }
 });
 
-export const userMandatoryFields: (keyof IUser)[] = ['name', 'email', 'password', 'addresses'];
+export const userMandatoryFields: (keyof IUser)[] = ['name', 'email', 'password'];
 export const adressMandatoryFields: (keyof IAddress)[] = ['city', 'street', 'building'];
 
 const User = mongoose.model<IUser>('Users', userSchema);
