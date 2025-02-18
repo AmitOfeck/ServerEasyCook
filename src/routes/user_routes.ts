@@ -13,7 +13,7 @@ const validateRegister = async (req: Request, res: Response, next: NextFunction)
         return;
     }
 
-    if (req.body?.addresses && !validateMandatoryFields(JSON.parse(req.body.addresses)[0], adressMandatoryFields)) {
+    if (req.body?.address && !validateMandatoryFields(req.body.address, adressMandatoryFields)) {
         res.status(400).json({ message: 'Missing mandatory address fields, cannot register user.' });
         return;
     }
