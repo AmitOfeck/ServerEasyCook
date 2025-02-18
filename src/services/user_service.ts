@@ -28,6 +28,10 @@ class UserService {
     return UserModel.find({ email: userEmail });
   }
 
+  async getUserByUserName(userName: string) : Promise<IUser[]> {
+    return UserModel.find({ userName });
+  }
+
 }
 
 export default new UserService();

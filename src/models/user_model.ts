@@ -10,6 +10,7 @@ interface IAddress {
 export interface IUser {
     _id?: ObjectId;
     name: string;
+    userName: string;
     email: string;
     password: string;
     profileImage?: string;
@@ -25,6 +26,7 @@ const addressSchema = new mongoose.Schema<IAddress>({
 
 const userSchema = new mongoose.Schema<IUser>({
   name: { type: String, required: true },
+  userName: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   addresses: { type: [addressSchema] , required: false },
@@ -32,7 +34,7 @@ const userSchema = new mongoose.Schema<IUser>({
   googleId: { type: String, required: false }
 });
 
-export const userMandatoryFields: (keyof IUser)[] = ['name', 'email', 'password'];
+export const userMandatoryFields: (keyof IUser)[] = ['name', 'userName' , 'email', 'password'];
 export const adressMandatoryFields: (keyof IAddress)[] = ['city', 'street', 'building'];
 
 const User = mongoose.model<IUser>('Users', userSchema);

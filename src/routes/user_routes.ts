@@ -18,10 +18,15 @@ const validateRegister = async (req: Request, res: Response, next: NextFunction)
         return;
     }
     
-    const user = await userService.getUserByEmail(req.body.email);
-
+    let user = await userService.getUserByEmail(req.body.email);
     if (user.length > 0) {
-        res.status(400).json({ message: 'User already exists.' });
+        res.status(400).json({ message: 'Email already exists.' });
+        return;
+    }
+
+    user = await userService.getUserByUserName(req.body.userName);
+    if (user.length > 0) {
+        res.status(400).json({ message: 'User Name already exists.' });
         return;
     }
 

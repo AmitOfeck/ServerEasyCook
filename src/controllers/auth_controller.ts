@@ -140,7 +140,8 @@ const googleSignin = async (req: Request, res: Response) => {
     if (!user) {
       user = await userService.createUser({
         email: email!,
-        name: payload?.name || '', 
+        name: payload?.name || '',
+        userName: payload?.email?.split('@')[0] || '', 
         profileImage: payload?.picture || '', 
         password: 'google-signin',
         googleId, 
