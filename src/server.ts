@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import * as dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import userRouter from './routes/user_routes';
+import dishRouter from './routes/dish_routes'
 import authRouter from './routes/auth_routes';
 import cors from 'cors';
 
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use(cors());
 app.use('/auth', authRouter);
 app.use('/user', userRouter);
+app.use('/dish', dishRouter);
 
 mongoose
   .connect(process.env.DB_URL as string) 
