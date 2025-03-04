@@ -20,6 +20,10 @@ class UserService {
     return user.save();
   }
 
+  async updateUser(userId: string, updateData: Partial<IUser>) {
+    return UserModel.findByIdAndUpdate(userId, updateData, { new: true, runValidators: true });
+}
+
   async getUserById(userId: string) {
     return UserModel.findById(userId);
   }
