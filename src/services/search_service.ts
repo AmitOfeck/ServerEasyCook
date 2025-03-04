@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
 import { OpenAI } from 'openai';
-
 import { Cuisine, Limitation, Level, IDish, DishModel } from '../models/dish_model';
 
 export interface SearchCriteria {
@@ -10,8 +9,6 @@ export interface SearchCriteria {
   limitation?: Limitation;
   level?: Level;
 }
-
-// --- Database Functions ---
 
 export async function searchInDB(criteria: SearchCriteria): Promise<IDish[]> {
   const query: any = {};
@@ -39,7 +36,6 @@ export async function saveDishes(dishes: any[]): Promise<void> {
 
 // --- ChatGPT API Integration ---
 
-// Instantiate the OpenAI client with your API key (make sure it's loaded from .env)
 const openai = new OpenAI({
  apiKey: "your-api-key-here",
 });
@@ -47,18 +43,22 @@ const openai = new OpenAI({
 export function buildGPTPrompt(criteria: SearchCriteria): string {
   const { name, price, cuisine, limitation, level } = criteria;
   return `Based on the following criteria:
-  Name: ${name || 'any'},
-  Price: ${price || 'any'},
-  Cuisine: ${cuisine || 'any'},
-  Dietary Limitations: ${limitation || 'none'},
-  Difficulty Level: ${level || 'any'},
+Name: ${name || 'any'},
+Price: ${price || 'any'},
+Cuisine: ${cuisine || 'any'},
+Dietary Limitations: ${limitation || 'none'},
+Difficulty Level: ${level || 'any'},
 please suggest three unique dish recommendations.
-Return the result as a valid JSON array in the following format:
+IMPORTANT: Return ONLY a valid JSON array in the following format, without any additional text or markdown:
 [
   {
     "name": string,
-    "ingredients": string[],
-    "details": string
+    "ingredients": [{ "name": string, "cost": number }],
+    "details": string,
+    "recipe": string,
+    "dishCalories": number,
+    "ingredientsCost": number,
+    "averageDishCost": number
   },
   ...
 ]`;
@@ -72,15 +72,19 @@ export async function callChatGPT(prompt: string, criteria: SearchCriteria): Pro
         { role: "system", content: "You are an assistant that suggests dish recommendations." },
         { role: "user", content: prompt }
       ],
-      max_tokens: 500,
+      max_tokens: 1000,
       temperature: 0.7,
     });
     
-    // Access the generated text directly
     const text = response.choices[0].message?.content;
-    if (!text) return [];
+    if (!text) {
+      console.error("ChatGPT returned an empty response.");
+      return [];
+    }
     
     let jsonString = text.trim();
+    console.log("Raw ChatGPT response:", jsonString); // Debug log
+    
     if (jsonString.startsWith('```json')) {
       jsonString = jsonString.replace(/```json/, '').replace(/```/, '').trim();
     }
@@ -105,8 +109,13 @@ export async function callChatGPT(prompt: string, criteria: SearchCriteria): Pro
       cuisine: criteria.cuisine || Cuisine.ITALIAN,
       limitation: criteria.limitation || Limitation.VEGETARIAN,
       level: criteria.level || Level.EASY,
+      // Expect dishObj.ingredients to be an array of objects with name and cost
       ingredients: dishObj.ingredients || [],
       details: dishObj.details || '',
+      recipe: dishObj.recipe || '',
+      dishCalories: dishObj.dishCalories || 0,
+      ingredientsCost: dishObj.ingredientsCost || 0,
+      averageDishCost: dishObj.averageDishCost || 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     }));

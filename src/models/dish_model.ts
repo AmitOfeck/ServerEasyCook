@@ -1,51 +1,3 @@
-//import mongoose from 'mongoose'
-// export interface Ingredient {
-//     name: string
-//     amount: string
-// }
-
-// export interface IDish {
-//     _id: string
-//     name: string
-
-//     course: string
-//     restrictions:string
-//     ingredientsCost:number
-//     averageDishCost:number
-//     difficulty:string
-
-//     calories:number
-//     ingredients: Ingredient[]
-
-//     recipe: string
-//     rating: number
-// }
-
-// const IngredientSchema = new mongoose.Schema<Ingredient>({
-//     name: {type: String, required: true},
-//     amount: {type: String, required: true}
-// })
-
-// const DishSchema = new mongoose.Schema<IDish>({
-//     name: {type: String, required: true},
-
-//     course: {type:String, required:false},
-//     restrictions:{type:String, required:false},
-//     ingredientsCost:{type: Number, required: true},
-//     averageDishCost:{type: Number, required: true},
-//     difficulty:{type: String, required: true},
-
-//     calories:{type: Number, required: true},
-//     ingredients:[IngredientSchema],
-//     recipe: {type:String, required: false},
-//     rating: {type: Number, default: 0}
-// })
-
-// const DishModel = mongoose.model("dishes", DishSchema)
-
-// export default DishModel
-
-
 import mongoose, { Document, Schema } from 'mongoose';
 
 export enum Cuisine {
@@ -69,17 +21,35 @@ export enum Level {
   HARD = 'HARD',
 }
 
+
+export interface IIngredient {
+  name: string;
+  cost: number;
+}
+
 export interface IDish extends Document {
   name: string;
   price: number;
   cuisine: Cuisine;
   limitation: Limitation;
   level: Level;
-  ingredients: string[];
+  ingredients: IIngredient[];
   details: string;
+  recipe: string;
+  dishCalories: number;
+  ingredientsCost: number;
+  averageDishCost: number;
   createdAt: Date;
   updatedAt: Date;
 }
+
+const IngredientSchema: Schema = new Schema(
+  {
+    name: { type: String, required: true },
+    cost: { type: Number, default: 0 },
+  },
+  { _id: false }
+);
 
 const DishSchema: Schema = new Schema(
   {
@@ -105,13 +75,16 @@ const DishSchema: Schema = new Schema(
       required: true,
       enum: Object.values(Level),
     },
-    ingredients: { type: [String], default: [] },
+    ingredients: { type: [IngredientSchema], default: [] },
     details: { type: String, default: '' },
+    recipe: { type: String, default: '' },
+    dishCalories: { type: Number, default: 0 },
+    ingredientsCost: { type: Number, default: 0 },
+    averageDishCost: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
 
 export const DishModel = mongoose.model<IDish>('Dish', DishSchema);
- export default DishModel
-
+export default DishModel;
 

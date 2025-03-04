@@ -22,7 +22,7 @@ app.use('/dish', dishRouter);
 app.use('/search', searchRouter);
 
 mongoose
-  .connect("mongodb://localhost:27017/EasyCook") 
+  .connect(process.env.DB_URL as string) 
   .then(() => {
     console.log('Connected to MongoDB');
   })
