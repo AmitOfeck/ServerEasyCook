@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { ObjectId } from "mongodb";
+import { FieldValidators } from '../utils/validations';
 
 interface IAddress {
     city: string;
@@ -10,6 +11,7 @@ interface IAddress {
 export interface IUser {
     _id?: ObjectId;
     name: string;
+    userName: string;
     email: string;
     password: string;
     profileImage?: string;
@@ -25,6 +27,7 @@ const addressSchema = new mongoose.Schema<IAddress>({
 
 const userSchema = new mongoose.Schema<IUser>({
   name: { type: String, required: true },
+  userName: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   addresses: { type: [addressSchema] , required: false },
@@ -32,8 +35,19 @@ const userSchema = new mongoose.Schema<IUser>({
   googleId: { type: String, required: false }
 });
 
-export const userMandatoryFields: (keyof IUser)[] = ['name', 'email', 'password'];
+export const userMandatoryFields: (keyof IUser)[] = ['name', 'userName' , 'email', 'password'];
 export const adressMandatoryFields: (keyof IAddress)[] = ['city', 'street', 'building'];
+
+export const userValidators: FieldValidators<IUser> = {
+    email: (value) => typeof value === 'string' && /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value),
+    name: (value) => typeof value === 'string' && value.trim().length > 0 && /^[a-zA-Z\s]+$/.test(value)
+};
+
+export const addressValidators: FieldValidators<IAddress> = {
+    city: (value) => typeof value === 'string' && value.trim().length > 0 && /^[a-zA-Z\s]+$/.test(value) ,
+    street: (value) => typeof value === 'string'&& value.trim().length > 0 && /^[a-zA-Z\s]+$/.test(value) ,
+    building: (value) => typeof value === 'number' && Number.isInteger(value) && value > 0 
+};
 
 const User = mongoose.model<IUser>('Users', userSchema);
 export default User;
