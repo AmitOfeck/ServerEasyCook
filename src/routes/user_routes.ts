@@ -48,4 +48,6 @@ router.get("/:id", userController.getUserProfile);
 
 router.post("/register", upload.single("profileImage"), validateRegister, userController.register);
 
+router.patch("/:id", upload.single("profileImage"), userController.updateUser);
+
 export default router;
