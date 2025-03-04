@@ -32,6 +32,29 @@ const fileFilter = (req:any, file:any, cb:any) => {
   }
 };
 
+
+/**
+ * @param filePath 
+ * @returns {boolean} 
+ */
+const deleteFile = (filePath: string): boolean => {
+  try {
+    const absolutePath = path.join(__dirname, '../../uploads', path.basename(filePath));
+
+    if (fs.existsSync(absolutePath)) {
+      fs.unlinkSync(absolutePath);
+      return true;
+    } else {
+      console.warn(`File not found: ${absolutePath}`);
+      return false;
+    }
+  } catch (err) {
+    console.error(`Error deleting file: ${err}`);
+    return false;
+  }
+};
+
+
 const upload = multer({ storage, fileFilter });
 
-export {upload, download};
+export {upload, download , deleteFile};
