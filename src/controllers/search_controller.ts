@@ -13,9 +13,8 @@ export async function searchDishes(req: Request, res: Response) {
 }
 
 export function getSearchOptions(req: Request, res: Response) {
-  // Assuming you want to return your enums as options:
   res.json({
-    cuisines: ["ITALIAN", "CHINESE", "INDIAN", "MEXICAN"],  // Or use Object.values(Cuisine)
+    cuisines: ["ITALIAN", "CHINESE", "INDIAN", "MEXICAN"],  
     limitations: ["VEGETARIAN", "VEGAN", "GLUTEN_FREE"],
     levels: ["EASY", "MEDIUM", "HARD"]
   });
