@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import userRouter from './routes/user_routes';
 import dishRouter from './routes/dish_routes'
 import authRouter from './routes/auth_routes';
+import searchRouter from './routes/search_routes';
 import cors from 'cors';
 
 
@@ -18,9 +19,10 @@ app.use(cors());
 app.use('/auth', authRouter);
 app.use('/user', userRouter);
 app.use('/dish', dishRouter);
+app.use('/search', searchRouter);
 
 mongoose
-  .connect(process.env.DB_URL as string) 
+  .connect("mongodb://localhost:27017/EasyCook") 
   .then(() => {
     console.log('Connected to MongoDB');
   })
