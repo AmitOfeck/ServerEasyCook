@@ -11,7 +11,7 @@ router.get("/search_many", DishController.findMany)
 
 
 router.post("/", DishController.insertDish)
-router.putr("/:id", DishController.updateDish)
+router.put("/:id", DishController.updateDish)
 router.delete("/:id", DishController.deleteDish)
 
 export default router
