@@ -18,6 +18,8 @@ export interface IUser {
     addresses? : [IAddress];
     googleId? : string;
     favoriteDishes: mongoose.Types.ObjectId[];
+    previousOrders: mongoose.Types.ObjectId[];  
+    shoppingList?: mongoose.Types.ObjectId | null; 
 }
 
 const addressSchema = new mongoose.Schema<IAddress>({
@@ -34,7 +36,9 @@ const userSchema = new mongoose.Schema<IUser>({
   addresses: { type: [addressSchema] , required: false },
   profileImage: { type: String },
   googleId: { type: String, required: false },
-  favoriteDishes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Dish", default: [] }]
+  favoriteDishes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Dish", default: [] }],
+  previousOrders: [{ type: mongoose.Schema.Types.ObjectId, ref: "Order", default: [] }],   
+  shoppingList: { type: mongoose.Schema.Types.ObjectId, ref: "ShoppingList", default: null }
 });
 
 export const userMandatoryFields: (keyof IUser)[] = ['name', 'userName' , 'email', 'password'];
