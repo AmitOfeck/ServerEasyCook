@@ -3,6 +3,7 @@ import express, { Request, Response, NextFunction } from "express";
 import { upload } from "../utils/files"
 import { validateFieldsValues, validateMandatoryFields } from "../utils/validations";
 import { adressMandatoryFields, userMandatoryFields, userValidators, addressValidators } from "../models/user_model";
+import {authMiddleware} from "../middleware/verifyToken";
 import userService from "../services/user_service";
 
 const router = express.Router();
@@ -49,5 +50,7 @@ router.get("/:id", userController.getUserProfile);
 router.post("/register", upload.single("profileImage"), validateRegister, userController.register);
 
 router.patch("/:id", upload.single("profileImage"), userController.updateUser);
+
+router.post("/favorite/:dishId", authMiddleware, userController.addFavoriteDish);
 
 export default router;

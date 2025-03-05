@@ -1,4 +1,6 @@
 import UserModel from '../models/user_model';
+import DishModel from '../models/dish_model';
+import mongoose from 'mongoose';
 import { IUser } from '../models/user_model';
 import bcrypt from 'bcrypt';
 
@@ -35,6 +37,34 @@ class UserService {
   async getUserByUserName(userName: string) : Promise<IUser[]> {
     return UserModel.find({ userName });
   }
+
+  async addFavoriteDish(userId: string, dishId: string) {
+    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(dishId)) {
+        throw new Error("Invalid userId or dishId");
+    }
+
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+    const dishObjectId = new mongoose.Types.ObjectId(dishId);
+
+    const user = await UserModel.findById(userObjectId);
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    const dish = await DishModel.findById(dishObjectId);
+    if (!dish) {
+        throw new Error("Dish not found");
+    }
+
+    if (user.favoriteDishes.includes(dishObjectId)) {
+        throw new Error("Dish is already in favorites");
+    }
+
+    user.favoriteDishes.push(dishObjectId);
+    await user.save();
+
+    return user;
+}
 
 }
 

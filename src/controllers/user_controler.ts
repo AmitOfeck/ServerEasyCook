@@ -3,6 +3,7 @@ import userService from '../services/user_service';
 import { validateFieldsValues } from "../utils/validations";
 import { addressValidators, userValidators } from "../models/user_model";
 import { upload , deleteFile } from "../utils/files"
+import { request } from 'http';
 
 const getUserProfile = async (req: Request, res: Response) => {
     try {
@@ -94,4 +95,17 @@ const updateUser = async (req: Request, res: Response): Promise<void> => {
 
 
 
-export default { getUserProfile, register , updateUser};
+const addFavoriteDish = async (req: Request, res: Response): Promise<void> => {
+    try {
+
+        const userId = req.params.userId;
+        const { dishId } = req.params;
+
+        const updatedUser = await userService.addFavoriteDish(userId, dishId);
+        res.status(200).json({ message: "Dish added to favorites", user: updatedUser });
+    } catch (err) {
+        res.status(400).json({ message: err instanceof Error ? err.message : "An error occurred" });
+    }
+};
+
+export default { getUserProfile, register , updateUser , addFavoriteDish};
