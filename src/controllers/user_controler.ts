@@ -96,7 +96,6 @@ const updateUser = async (req: Request, res: Response): Promise<void> => {
 
 const addFavoriteDish = async (req: Request, res: Response): Promise<void> => {
     try {
-
         const userId = req.params.userId;
         if (!userId) {
             res.status(401).json({ message: "Unauthorized. User not found in token." });
@@ -114,7 +113,7 @@ const addFavoriteDish = async (req: Request, res: Response): Promise<void> => {
 
 const getFavoriteDishes = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.params.id; 
+        const userId = req.params.userId; 
 
         if (!userId) {
             res.status(400).json({ message: "User ID is required in the URL." });

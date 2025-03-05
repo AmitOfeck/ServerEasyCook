@@ -45,6 +45,8 @@ const validateRegister = async (req: Request, res: Response, next: NextFunction)
     next();
 };
 
+router.get("/favorite-dishes", authMiddleware, userController.getFavoriteDishes);
+
 router.get("/:id", userController.getUserProfile);
 
 router.post("/register", upload.single("profileImage"), validateRegister, userController.register);
@@ -53,6 +55,5 @@ router.patch("/:id", upload.single("profileImage"), userController.updateUser);
 
 router.post("/favorite/:dishId", authMiddleware, userController.addFavoriteDish);
 
-router.get("/:id/favorite-dishes", userController.getFavoriteDishes);
 
 export default router;
