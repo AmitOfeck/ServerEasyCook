@@ -53,4 +53,6 @@ router.patch("/:id", upload.single("profileImage"), userController.updateUser);
 
 router.post("/favorite/:dishId", authMiddleware, userController.addFavoriteDish);
 
+router.get("/:id/favorite-dishes", userController.getFavoriteDishes);
+
 export default router;

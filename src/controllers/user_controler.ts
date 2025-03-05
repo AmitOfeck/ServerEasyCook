@@ -94,11 +94,15 @@ const updateUser = async (req: Request, res: Response): Promise<void> => {
 };
 
 
-
 const addFavoriteDish = async (req: Request, res: Response): Promise<void> => {
     try {
 
         const userId = req.params.userId;
+        if (!userId) {
+            res.status(401).json({ message: "Unauthorized. User not found in token." });
+            return;
+        }
+
         const { dishId } = req.params;
 
         const updatedUser = await userService.addFavoriteDish(userId, dishId);
@@ -108,4 +112,20 @@ const addFavoriteDish = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export default { getUserProfile, register , updateUser , addFavoriteDish};
+const getFavoriteDishes = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = req.params.id; 
+
+        if (!userId) {
+            res.status(400).json({ message: "User ID is required in the URL." });
+            return;
+        }
+
+        const favoriteDishIds = await userService.getFavoriteDishes(userId);
+        res.status(200).json({ userId, favoriteDishIds }); 
+    } catch (err) {
+        res.status(400).json({ message: err instanceof Error ? err.message : "An error occurred" });
+    }
+};
+
+export default { getUserProfile, register , updateUser , addFavoriteDish , getFavoriteDishes};

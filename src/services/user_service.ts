@@ -66,6 +66,24 @@ class UserService {
     return user;
 }
 
+async getFavoriteDishes(userId: string) {
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new Error("Invalid userId");
+  }
+
+  const user = await UserModel.findById(new mongoose.Types.ObjectId(userId))
+      .populate("favoriteDishes", "_id") 
+      .select("favoriteDishes"); 
+  
+  if (!user) {
+      throw new Error("User not found");
+  }
+  
+  const dishIds = user.favoriteDishes.map((dish: any) => dish._id);
+
+  return dishIds;
+}
+
 }
 
 export default new UserService();
