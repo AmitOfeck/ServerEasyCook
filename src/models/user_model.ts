@@ -17,6 +17,7 @@ export interface IUser {
     profileImage?: string;
     addresses? : [IAddress];
     googleId? : string;
+    favoriteDishes: mongoose.Types.ObjectId[];
 }
 
 const addressSchema = new mongoose.Schema<IAddress>({
@@ -32,7 +33,8 @@ const userSchema = new mongoose.Schema<IUser>({
   email: { type: String, required: true, unique: true },
   addresses: { type: [addressSchema] , required: false },
   profileImage: { type: String },
-  googleId: { type: String, required: false }
+  googleId: { type: String, required: false },
+  favoriteDishes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Dish", default: [] }]
 });
 
 export const userMandatoryFields: (keyof IUser)[] = ['name', 'userName' , 'email', 'password'];
