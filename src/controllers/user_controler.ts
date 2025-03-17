@@ -16,7 +16,7 @@ const getUserProfile = async (req: Request, res: Response) => {
 
 const register = async (req: Request, res: Response) => {
     try {
-        if (req.body.address) {
+        if (req.body.address && Object.keys(JSON.parse(req.body.address)).length != 0) {
             req.body.addresses = [JSON.parse(req.body.address)];
         } else {
             req.body.addresses = [];
