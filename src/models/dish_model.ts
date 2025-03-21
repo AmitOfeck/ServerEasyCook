@@ -24,6 +24,8 @@ export enum Level {
 
 export interface IIngredient {
   name: string;
+  unit: string;
+  quantity: number;
   cost: number;
 }
 
@@ -46,6 +48,8 @@ export interface IDish extends Document {
 const IngredientSchema: Schema = new Schema(
   {
     name: { type: String, required: true },
+    unit: { type: String, default: "" },
+    quantity: { type: Number, default: 0 },
     cost: { type: Number, default: 0 },
   },
   { _id: false }
