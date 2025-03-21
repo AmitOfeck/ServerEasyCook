@@ -5,7 +5,6 @@ import DishModel from "../models/dish_model";
 export async function insertDish(d : any) {
 
     // d already validated here
-    console.log("Dish to insert >>>", JSON.stringify(d, null, 2));
     const newDish = await DishModel.create(d)
     return newDish
 }
