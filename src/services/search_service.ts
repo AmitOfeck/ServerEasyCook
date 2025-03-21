@@ -8,6 +8,7 @@ export interface SearchCriteria {
   cuisine?: Cuisine;
   limitation?: Limitation;
   level?: Level;
+  numberOfDishes?: number;
 }
 
 export async function searchInDB(criteria: SearchCriteria): Promise<IDish[]> {
@@ -41,19 +42,20 @@ const openai = new OpenAI({
 });
 
 export function buildGPTPrompt(criteria: SearchCriteria): string {
-  const { name, price, cuisine, limitation, level } = criteria;
+  const { name, price, cuisine, limitation, level, numberOfDishes } = criteria;
   return `Based on the following criteria:
 Name: ${name || 'any'},
 Price: ${price || 'any'},
 Cuisine: ${cuisine || 'any'},
 Dietary Limitations: ${limitation || 'none'},
 Difficulty Level: ${level || 'any'},
+NumberOfDishes: ${numberOfDishes || 'any'},
 please suggest three unique dish recommendations.
 IMPORTANT: Return ONLY a valid JSON array in the following format, without any additional text or markdown:
 [
   {
     "name": string,
-    "ingredients": [{ "name": string, "cost": number }],
+    "ingredients": [{ "name": string, "unit": string , "quantity": number , "cost": number}],
     "details": string,
     "recipe": string,
     "dishCalories": number,
@@ -102,6 +104,7 @@ export async function callChatGPT(prompt: string, criteria: SearchCriteria): Pro
       return [];
     }
     
+    const allowedUnits = ['gram', 'kg', 'ml', 'liter'];
     const dishes = dishArray.map((dishObj: any) => ({
       id: uuidv4(),
       name: dishObj.name || 'Unnamed Dish',
@@ -109,8 +112,19 @@ export async function callChatGPT(prompt: string, criteria: SearchCriteria): Pro
       cuisine: criteria.cuisine || Cuisine.ITALIAN,
       limitation: criteria.limitation || Limitation.VEGETARIAN,
       level: criteria.level || Level.EASY,
-      // Expect dishObj.ingredients to be an array of objects with name and cost
-      ingredients: dishObj.ingredients || [],
+      // Expect dishObj.ingredients to be an array of objects with name and cost and quantity and Unit
+      ingredients: (dishObj.ingredients || []).map((ing: any) => {
+        let unit = ing.unit || '';
+        if (!allowedUnits.includes(unit)) {
+          unit = 'gram'; 
+        }
+        return {
+          name: ing.name || '',
+          unit,
+          quantity: ing.quantity || 0,
+          cost: ing.cost || 0
+        };
+      }),      
       details: dishObj.details || '',
       recipe: dishObj.recipe || '',
       dishCalories: dishObj.dishCalories || 0,
