@@ -18,21 +18,12 @@ export async function addItem(userId: string, item: IShoppingItem) {
       });
     }
   
-    // חפש את כל הרכיבים עם אותו name
     const matchingItems = shoppingList.items.filter(i => i.name === item.name);
-  
-    // חישוב סך הכמות ביחידת בסיס
     const totalBase = convertToBaseUnit(item.unit, item.quantity) +
       matchingItems.reduce((sum, i) => sum + convertToBaseUnit(i.unit, i.quantity), 0);
   
-    // המר והנרמל
     const merged = normalizeUnit(item.name, 'ml', totalBase); // עבור נוזלים
-    // או עבור מוצקים - תוכל להחליף ל־'gram' או לעשות זיהוי חכם
-  
-    // הסר את כל הפריטים הקודמים עם אותו name
     shoppingList.items = shoppingList.items.filter(i => i.name !== item.name);
-  
-    // הוסף את המנורמל
     shoppingList.items.push(merged);
   
     await shoppingList.save();
@@ -43,11 +34,9 @@ export async function addItem(userId: string, item: IShoppingItem) {
     const shoppingList = await ShoppingListModel.findOne({ userId });
     if (!shoppingList) return null;
   
-    // מצא את כל הפריטים עם אותו name
     const matchingItems = shoppingList.items.filter(i => i.name === itemName);
     if (matchingItems.length === 0) return shoppingList;
   
-    // חשב את הסכום הכללי
     const baseUnit = ['ml', 'liter'].includes(unit) ? 'ml' : 'gram';
   
     const totalBase = convertToBaseUnit(unit, delta) +
@@ -55,10 +44,8 @@ export async function addItem(userId: string, item: IShoppingItem) {
   
     const normalized = normalizeUnit(itemName, baseUnit, totalBase);
   
-    // מחק את כל הפריטים עם אותו name
     shoppingList.items = shoppingList.items.filter(i => i.name !== itemName);
   
-    // בדוק אם כבר יש את היחידה המנורמלת
     const existing = shoppingList.items.find(
       i => i.name === normalized.name && i.unit === normalized.unit
     );
@@ -69,7 +56,6 @@ export async function addItem(userId: string, item: IShoppingItem) {
       shoppingList.items.push(normalized);
     }
   
-    // איחוד ליתר ביטחון
     mergeSameItems(shoppingList);
   
     await shoppingList.save();

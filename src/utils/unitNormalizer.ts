@@ -1,9 +1,4 @@
-export function normalizeUnit(
-    name: string,
-    unit: string,
-    quantity: number
-  ): { name: string; unit: string; quantity: number } {
-    // עיגול לשלוש ספרות אחרי הנקודה
+export function normalizeUnit( name: string, unit: string, quantity: number): { name: string; unit: string; quantity: number } {
     const round = (val: number) => Math.round(val * 1000) / 1000;
   
     if (unit === 'gram' && quantity >= 1000) {
