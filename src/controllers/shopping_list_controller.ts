@@ -16,8 +16,8 @@ export async function addItem(req: Request, res: Response) {
 
 export async function updateItemQuantity(req: Request, res: Response) {
   const userId = (req as any).userId;
-  const { itemName, delta } = req.body;
-  const updated = await ShoppingListService.updateItemQuantity(userId, itemName, delta);
+  const { itemName, delta , unit } = req.body;
+  const updated = await ShoppingListService.updateItemQuantity(userId, itemName, unit , delta);
   res.send(updated);
 }
 
