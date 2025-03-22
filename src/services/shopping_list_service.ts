@@ -53,7 +53,6 @@ export async function clearList(userId: string) {
   );
 }
 
-// ✅ add ingredients from multiple dishes and update the list
 export async function addCombinedDishesToShoppingList(userId: string, dishIds: string[]) {
   const dishes = await DishModel.find({ _id: { $in: dishIds } });
 

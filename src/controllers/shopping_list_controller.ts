@@ -39,8 +39,8 @@ export async function addCombinedDishesToList(req: Request, res: Response) {
       const userId = (req as any).userId;
       const { dishIds } = req.body;
 
-      console.log("userId:", userId);
-      console.log("dishIds:", dishIds);
+      //console.log("userId:", userId);
+      //console.log("dishIds:", dishIds);
   
       if (!userId || !Array.isArray(dishIds) || dishIds.length === 0) {
         console.log("🔴 Validation failed - missing userId or dishIds");
@@ -49,7 +49,7 @@ export async function addCombinedDishesToList(req: Request, res: Response) {
       }
   
       const updatedList = await ShoppingListService.addCombinedDishesToShoppingList(userId, dishIds);
-      console.log("✅ Shopping list updated for user:", userId);
+      //console.log("Shopping list updated for user:", userId);
       res.status(200).send(updatedList);
     } catch (err: any) {
       console.error("🔥 Error in addCombinedDishesToList:", err);
