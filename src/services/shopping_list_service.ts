@@ -132,6 +132,6 @@ function mergeSameItems(shoppingList: { items: IShoppingItem[] }) {
 
   shoppingList.items = Array.from(mergedMap.entries()).map(([key, quantity]) => {
     const [name, unit] = key.split('-');
-    return { name, unit, quantity: Math.round(quantity * 1000) / 1000 }; // עיגול עד 3 ספרות
+    return { name, unit, quantity: Math.round(quantity * 1000) / 1000 }; 
   });
 }
