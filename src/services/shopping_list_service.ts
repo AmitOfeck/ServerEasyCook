@@ -30,7 +30,7 @@ export async function addItem(userId: string, item: IShoppingItem) {
     return shoppingList;
   }
 
-  export async function updateItemQuantity( userId: string, itemName: string, unit: string, delta: number) {
+  export async function updateItemQuantity(userId: string, itemName: string, unit: string, delta: number) {
     const shoppingList = await ShoppingListModel.findOne({ userId });
     if (!shoppingList) return null;
   
@@ -44,14 +44,10 @@ export async function addItem(userId: string, item: IShoppingItem) {
   
     const normalized = normalizeUnit(itemName, baseUnit, totalBase);
   
-    shoppingList.items = shoppingList.items.filter(i => i.name !== itemName);
+    const index = shoppingList.items.findIndex(i => i.name === itemName);
   
-    const existing = shoppingList.items.find(
-      i => i.name === normalized.name && i.unit === normalized.unit
-    );
-  
-    if (existing) {
-      existing.quantity += normalized.quantity;
+    if (index !== -1) {
+      shoppingList.items[index] = normalized; 
     } else {
       shoppingList.items.push(normalized);
     }
@@ -134,4 +130,25 @@ function mergeSameItems(shoppingList: { items: IShoppingItem[] }) {
     const [name, unit] = key.split('-');
     return { name, unit, quantity: Math.round(quantity * 1000) / 1000 }; 
   });
+}
+
+export async function replaceItem(userId: string, item: IShoppingItem) {
+  const shoppingList = await ShoppingListModel.findOne({ userId });
+  const normalized = normalizeUnit(item.name, item.unit, item.quantity);
+
+  if (!shoppingList) {
+    return await ShoppingListModel.create({ userId, items: [normalized] });
+  }
+
+  const index = shoppingList.items.findIndex(i => i.name === item.name);
+
+  if (index !== -1) {
+    shoppingList.items[index] = normalized; 
+  } else {
+    shoppingList.items.push(normalized);
+  }
+
+  mergeSameItems(shoppingList);
+  await shoppingList.save();
+  return shoppingList;
 }
