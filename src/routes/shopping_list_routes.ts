@@ -11,5 +11,6 @@ router.put('/update-quantity', authMiddleware, ShoppingListController.updateItem
 router.put('/remove', authMiddleware, ShoppingListController.removeItem);
 router.put('/clear', authMiddleware, ShoppingListController.clearList);
 router.post('/add-dishes', authMiddleware, ShoppingListController.addCombinedDishesToList);
+router.put('/replace', authMiddleware, ShoppingListController.replaceItem);
 
 export default router;

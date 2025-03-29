@@ -52,3 +52,15 @@ export async function addCombinedDishesToList(req: Request, res: Response) {
       res.status(500).send({ error: err.message });
     }
   }
+
+  export async function replaceItem(req: Request, res: Response) {
+    const userId = (req as any).userId;
+    const { name, unit, quantity } = req.body;
+    try {
+      const updated = await ShoppingListService.replaceItem(userId, { name, unit, quantity });
+      res.send(updated);
+    } catch (error: any) {
+      console.error("Error in replaceItem:", error);
+      res.status(500).send({ error: error.message });
+    }
+  }
