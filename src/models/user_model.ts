@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { ObjectId } from "mongodb";
 import { FieldValidators } from '../utils/validations';
 
-interface IAddress {
+export interface IAddress {
     city: string;
     street: string;
     building: number;
