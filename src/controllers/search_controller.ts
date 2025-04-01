@@ -4,8 +4,9 @@ import { handleSearchFlow } from '../services/search_service';
 export async function searchDishes(req: Request, res: Response) {
   try {
     const criteria = req.body;
+    console.log(criteria, "criteria")
     const dishes = await handleSearchFlow(criteria);
-    res.json({ dishes });
+    res.json(dishes);
   } catch (error) {
     console.error('Error during search:', error);
     res.status(500).json({ error: 'Error processing search request.' });
