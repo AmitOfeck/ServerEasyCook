@@ -13,7 +13,8 @@ import cors from 'cors';
 
 const app = express();
 
-// dotenv.config({ path: `./config/.env.${process.env.NODE_ENV || 'local'}` });
+dotenv.config({ path: `./config/.env.${process.env.NODE_ENV || 'local'}` });
+
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
