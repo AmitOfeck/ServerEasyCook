@@ -7,12 +7,14 @@ import dishRouter from './routes/dish_routes'
 import authRouter from './routes/auth_routes';
 import searchRouter from './routes/search_routes';
 import shoppingListRoutes from './routes/shopping_list_routes';
+import cartRoutes from './routes/cart_routes';
 import cors from 'cors';
 
 
 const app = express();
 
-// dotenv.config({ path: `./config/.env.${process.env.NODE_ENV || 'local'}` });
+dotenv.config({ path: `./config/.env.${process.env.NODE_ENV || 'local'}` });
+
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
@@ -22,6 +24,7 @@ app.use('/user', userRouter);
 app.use('/dish', dishRouter);
 app.use('/search', searchRouter);
 app.use('/shopping-list', shoppingListRoutes);
+app.use('/cart', cartRoutes);
 
 mongoose
   .connect(process.env.DB_URL as string) 

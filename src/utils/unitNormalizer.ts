@@ -20,11 +20,13 @@ export function normalizeUnit( name: string, unit: string, quantity: number): { 
   
   export function convertToBaseUnit(unit: string, quantity: number): number {
     switch (unit) {
+      case 'g':
       case 'gram':
       case 'ml':
         return quantity;
       case 'kg':
       case 'liter':
+      case 'l':
         return quantity * 1000;
       default:
         return quantity;
