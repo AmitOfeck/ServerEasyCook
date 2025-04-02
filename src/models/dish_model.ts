@@ -61,7 +61,7 @@ const DishSchema: Schema = new Schema(
       type: String,
       required: true,
       maxlength: 100,
-      match: /^[A-Za-z0-9 ]+$/,
+      match: /^[A-Za-z0-9\s,\.'\-]+$/,
     },
     price: { type: Number, required: true, min: 0, max: 1000 },
     cuisine: {

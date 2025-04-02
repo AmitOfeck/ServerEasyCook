@@ -40,12 +40,14 @@ const login = async (req: Request, res: Response) => {
             res.status(400).send('Wrong email or password');
             return;
         }
+        
         if (!process.env.TOKEN_SECRET) {
             res.status(500).send('Server Error');
             return;
         }
         // generate token
         const tokens = generateToken(user._id!);
+        console.log(tokens, "------------")
         if (!tokens) {
             res.status(500).send('Server Error');
             return;

@@ -4,7 +4,8 @@ import { Cuisine, Limitation, Level, IDish, DishModel } from '../models/dish_mod
 
 export interface SearchCriteria {
   name?: string;
-  price?: number;
+  priceMin?: number;   
+  priceMax?: number;
   cuisine?: Cuisine;
   limitation?: Limitation;
   level?: Level;
@@ -16,8 +17,13 @@ export async function searchInDB(criteria: SearchCriteria): Promise<IDish[]> {
   if (criteria.name) {
     query.name = { $regex: criteria.name, $options: 'i' };
   }
-  if (criteria.price !== undefined) {
-    query.price = criteria.price;
+  // PRICE RANGE
+  if (criteria.priceMin !== undefined && criteria.priceMax !== undefined) {
+    query.price = { $gte: criteria.priceMin, $lte: criteria.priceMax };
+  } else if (criteria.priceMin !== undefined) {
+    query.price = { $gte: criteria.priceMin };
+  } else if (criteria.priceMax !== undefined) {
+    query.price = { $lte: criteria.priceMax };
   }
   if (criteria.cuisine) {
     query.cuisine = criteria.cuisine;
@@ -38,14 +44,14 @@ export async function saveDishes(dishes: any[]): Promise<void> {
 // --- ChatGPT API Integration ---
 
 const openai = new OpenAI({
- apiKey: "your-api-key-here",
+ apiKey: "",
 });
 
 export function buildGPTPrompt(criteria: SearchCriteria): string {
-  const { name, price, cuisine, limitation, level, numberOfDishes } = criteria;
+  const { name, priceMin, cuisine, limitation, level, numberOfDishes } = criteria;
   return `Based on the following criteria:
 Name: ${name || 'any'},
-Price: ${price || 'any'},
+Price: ${priceMin || 'any'},
 Cuisine: ${cuisine || 'any'},
 Dietary Limitations: ${limitation || 'none'},
 Difficulty Level: ${level || 'any'},
@@ -108,7 +114,7 @@ export async function callChatGPT(prompt: string, criteria: SearchCriteria): Pro
     const dishes = dishArray.map((dishObj: any) => ({
       id: uuidv4(),
       name: dishObj.name || 'Unnamed Dish',
-      price: criteria.price || 0,
+      price: criteria.priceMin || 0,
       cuisine: criteria.cuisine || Cuisine.ITALIAN,
       limitation: criteria.limitation || Limitation.VEGETARIAN,
       level: criteria.level || Level.EASY,
