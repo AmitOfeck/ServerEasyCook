@@ -38,7 +38,7 @@ const getNearbyStores = async (lat: number, lon: number): Promise<Isuper[]> => {
         delivery_price: store.venue.delivery_price_int/100, //TODO relaize how to get price - when not loggd in
       }));
       // TODO - add stores to DB
-      return stores;
+      return stores.slice(0, 20);
     } catch (error) {
       console.error('Error fetching nearby stores:', error);
       return [];
@@ -67,8 +67,8 @@ const searchProductInStore = async (storeSlug: string, productName: string): Pro
   };
   
 const openai = new OpenAI({
-    apiKey: 'put here - dont commit to code',
-   });
+  apiKey: 'put here - dont commit to code',
+});
    
    function buildGPTPrompt(products: ISuperProduct[], query: string): string {
     const options = products.map(product => product.name).join(",\n   ");
@@ -189,7 +189,7 @@ export const findCheapestCart = async (shoppingList: IShoppingList, userAdress: 
         throw "cant find adress";
     }
 
-    const stores: Isuper[] = [(await getNearbyStores(coordinates.lat, coordinates.lon))[0]]; // TODO - remove getting only first
+    const stores: Isuper[] = await getNearbyStores(coordinates.lat, coordinates.lon);
     const storesCarts: ICart[] = [];
     for(const store of stores) {
         const cart = await buildCart(shoppingList.items, store.slug, shoppingList.id);
