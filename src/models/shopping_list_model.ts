@@ -9,6 +9,7 @@ export interface IShoppingItem {
 export interface IShoppingList extends Document {
   userId: string;
   items: IShoppingItem[];
+  preparedDishes: Map<string, number>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,7 +26,8 @@ const ShoppingItemSchema = new Schema<IShoppingItem>(
 const ShoppingListSchema = new Schema<IShoppingList>(
   {
     userId: { type: String, required: true },
-    items: { type: [ShoppingItemSchema], default: [] }
+    items: { type: [ShoppingItemSchema], default: [] },
+    preparedDishes: { type: Map, of: Number, default: {} }
   },
   { timestamps: true }
 );

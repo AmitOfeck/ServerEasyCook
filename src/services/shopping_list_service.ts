@@ -96,22 +96,32 @@ export async function addCombinedDishesToShoppingList(userId: string, dishIds: s
   let shoppingList = await ShoppingListModel.findOne({ userId });
 
   if (!shoppingList) {
-    return await ShoppingListModel.create({ userId, items: combinedList });
+    shoppingList = await ShoppingListModel.create({
+      userId,
+      items: combinedList,
+      preparedDishes: new Map()
+    });
+  } else {
+    for (const item of combinedList) {
+      const existing = shoppingList.items.find(i => i.name === item.name && i.unit === item.unit);
+      if (existing) {
+        existing.quantity += item.quantity;
+      } else {
+        shoppingList.items.push(item);
+      }
+    }
   }
 
-  for (const item of combinedList) {
-    const existing = shoppingList.items.find(i => i.name === item.name && i.unit === item.unit);
-    if (existing) {
-      existing.quantity += item.quantity;
-    } else {
-      shoppingList.items.push(item);
-    }
+  for (const dishId of dishIds) {
+    const count = shoppingList.preparedDishes.get(dishId) || 0;
+    shoppingList.preparedDishes.set(dishId, count + 1);
   }
 
   mergeSameItems(shoppingList);
   await shoppingList.save();
   return shoppingList;
 }
+
 
 function mergeSameItems(shoppingList: { items: IShoppingItem[] }) {
   const mergedMap = new Map<string, number>();
