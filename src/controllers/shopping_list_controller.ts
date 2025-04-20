@@ -64,3 +64,7 @@ export async function addCombinedDishesToList(req: Request, res: Response) {
       res.status(500).send({ error: error.message });
     }
   }
+export function removeDishFromList(arg0: string, authMiddleware: (req: Request, res: Response, next: import("express").NextFunction) => void, removeDishFromList: any) {
+    throw new Error('Function not implemented.');
+}
+

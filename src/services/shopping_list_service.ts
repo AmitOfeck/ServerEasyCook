@@ -1,3 +1,4 @@
+import e from 'express';
 import { DishModel } from '../models/dish_model';
 import { ShoppingListModel } from '../models/shopping_list_model';
 import { IShoppingItem } from '../models/shopping_list_model';
@@ -14,7 +15,8 @@ export async function addItem(userId: string, item: IShoppingItem) {
       const normalized = normalizeUnit(item.name, item.unit, item.quantity);
       return await ShoppingListModel.create({
         userId,
-        items: [normalized]
+        items: [normalized],
+        preparedDishes: new Map<string, number>()
       });
     }
   
@@ -71,7 +73,7 @@ export async function removeItem(userId: string, itemName: string) {
 export async function clearList(userId: string) {
   return await ShoppingListModel.findOneAndUpdate(
     { userId },
-    { items: [] },
+    { items: [], preparedDishes: {} },
     { new: true }
   );
 }
@@ -79,68 +81,100 @@ export async function clearList(userId: string) {
 export async function addCombinedDishesToShoppingList(userId: string, dishIds: string[]) {
   const dishes = await DishModel.find({ _id: { $in: dishIds } });
 
-  const combinedMap = new Map<string, IShoppingItem>();
+  const combinedMap = new Map<string, number>(); // name -> baseQuantity
+
   for (const dish of dishes) {
     for (const ingredient of dish.ingredients) {
-      const normalized = normalizeUnit(ingredient.name, ingredient.unit, ingredient.quantity);
-      const key = `${normalized.name}-${normalized.unit}`;
+      const baseQuantity = convertToBaseUnit(ingredient.unit, ingredient.quantity);
+      const key = ingredient.name; // merge by name
       if (combinedMap.has(key)) {
-        combinedMap.get(key)!.quantity += normalized.quantity;
+        combinedMap.set(key, combinedMap.get(key)! + baseQuantity);
       } else {
-        combinedMap.set(key, { name: normalized.name, unit: normalized.unit, quantity: normalized.quantity });
+        combinedMap.set(key, baseQuantity);
       }
     }
   }
 
-  const combinedList = Array.from(combinedMap.values());
   let shoppingList = await ShoppingListModel.findOne({ userId });
 
   if (!shoppingList) {
     shoppingList = await ShoppingListModel.create({
       userId,
-      items: combinedList,
-      preparedDishes: new Map()
+      items: [],
+      preparedDishes: new Map<string, number>()
     });
-  } else {
-    for (const item of combinedList) {
-      const existing = shoppingList.items.find(i => i.name === item.name && i.unit === item.unit);
-      if (existing) {
-        existing.quantity += item.quantity;
+  }
+
+  for (const [name, baseQuantity] of combinedMap.entries()) {
+    const existing = shoppingList.items.find(item => item.name === name);
+
+    if (existing) {
+      const existingBase = convertToBaseUnit(existing.unit, existing.quantity);
+      const totalBase = existingBase + baseQuantity;
+      // normlize
+      const normalized = normalizeUnit(name, 'gram', totalBase);
+      if (normalized.unit === 'gram' || normalized.unit === 'kg') {
+        existing.unit = normalized.unit;
+        existing.quantity = normalized.quantity;
       } else {
-        shoppingList.items.push(item);
+        const normalizedLiquid = normalizeUnit(name, 'ml', totalBase);
+        existing.unit = normalizedLiquid.unit;
+        existing.quantity = normalizedLiquid.quantity;
       }
+    } else {
+      // new product
+      let normalized = normalizeUnit(name, 'gram', baseQuantity);
+      if (normalized.unit !== 'gram' && normalized.unit !== 'kg') {
+        normalized = normalizeUnit(name, 'ml', baseQuantity);
+      }
+      shoppingList.items.push(normalized);
     }
   }
 
-  for (const dishId of dishIds) {
-    const count = shoppingList.preparedDishes.get(dishId) || 0;
-    shoppingList.preparedDishes.set(dishId, count + 1);
+  // update preparedDishes
+  if (!shoppingList.preparedDishes) {
+    shoppingList.preparedDishes = new Map<string, number>();
   }
 
-  mergeSameItems(shoppingList);
+  for (const dish of dishes) {
+    const dishIdStr = (dish._id as any).toString();
+    const currentCount = shoppingList.preparedDishes.get(dishIdStr) || 0;
+    shoppingList.preparedDishes.set(dishIdStr, currentCount + 1);
+  }
+
   await shoppingList.save();
   return shoppingList;
 }
 
 
-function mergeSameItems(shoppingList: { items: IShoppingItem[] }) {
+
+export function mergeSameItems(shoppingList: { items: IShoppingItem[] }) {
   const mergedMap = new Map<string, number>();
 
   for (const item of shoppingList.items) {
-    const normalized = normalizeUnit(item.name, item.unit, item.quantity);
-    const key = `${normalized.name}-${normalized.unit}`;
+    const baseQuantity = convertToBaseUnit(item.unit, item.quantity); // תמיד מעביר לגרם או מיליליטר
+    const key = item.name; // לפי שם בלבד
+
     if (mergedMap.has(key)) {
-      mergedMap.set(key, mergedMap.get(key)! + normalized.quantity);
+      mergedMap.set(key, mergedMap.get(key)! + baseQuantity);
     } else {
-      mergedMap.set(key, normalized.quantity);
+      mergedMap.set(key, baseQuantity);
     }
   }
 
-  shoppingList.items = Array.from(mergedMap.entries()).map(([key, quantity]) => {
-    const [name, unit] = key.split('-');
-    return { name, unit, quantity: Math.round(quantity * 1000) / 1000 }; 
+  shoppingList.items = Array.from(mergedMap.entries()).map(([name, baseQuantity]) => {
+    // נורמל חזרה לפי שם וכמות בבסיס
+    const normalized = normalizeUnit(name, 'gram', baseQuantity); // נתחיל מ־gram
+    if (normalized.unit === 'gram' || normalized.unit === 'kg') {
+      return normalized;
+    } else {
+      // אם זה לא גרם/ק"ג – ננרמל ל־ml/liter
+      const normalizedLiquid = normalizeUnit(name, 'ml', baseQuantity);
+      return normalizedLiquid;
+    }
   });
 }
+
 
 export async function replaceItem(userId: string, item: IShoppingItem) {
   const shoppingList = await ShoppingListModel.findOne({ userId });
