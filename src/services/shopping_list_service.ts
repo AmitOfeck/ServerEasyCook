@@ -152,7 +152,7 @@ export function mergeSameItems(shoppingList: { items: IShoppingItem[] }) {
   const mergedMap = new Map<string, number>();
 
   for (const item of shoppingList.items) {
-    const baseQuantity = convertToBaseUnit(item.unit, item.quantity); // תמיד מעביר לגרם או מיליליטר
+    const baseQuantity = convertToBaseUnit(item.unit, item.quantity); 
     const key = item.name; // לפי שם בלבד
 
     if (mergedMap.has(key)) {
@@ -163,12 +163,10 @@ export function mergeSameItems(shoppingList: { items: IShoppingItem[] }) {
   }
 
   shoppingList.items = Array.from(mergedMap.entries()).map(([name, baseQuantity]) => {
-    // נורמל חזרה לפי שם וכמות בבסיס
-    const normalized = normalizeUnit(name, 'gram', baseQuantity); // נתחיל מ־gram
+    const normalized = normalizeUnit(name, 'gram', baseQuantity); 
     if (normalized.unit === 'gram' || normalized.unit === 'kg') {
       return normalized;
     } else {
-      // אם זה לא גרם/ק"ג – ננרמל ל־ml/liter
       const normalizedLiquid = normalizeUnit(name, 'ml', baseQuantity);
       return normalizedLiquid;
     }
@@ -218,7 +216,7 @@ export async function removeDishFromShoppingList(userId: string, dishId: string)
 
     const itemIndex = shoppingList.items.findIndex(item => item.name === ingredient.name);
     if (itemIndex === -1) {
-      continue; // אין מה להחסיר אם המרכיב לא קיים
+      continue; // do not exist
     }
 
     const existingItem = shoppingList.items[itemIndex];
@@ -227,7 +225,7 @@ export async function removeDishFromShoppingList(userId: string, dishId: string)
     const updatedBaseQty = existingBaseQty - ingredientBaseQty;
 
     if (updatedBaseQty <= 0) {
-      shoppingList.items.splice(itemIndex, 1); // מוחק את המוצר
+      shoppingList.items.splice(itemIndex, 1); // ender 0, delete item
     } else {
       const isLiquid = existingItem.unit === 'ml' || existingItem.unit === 'liter';
       const baseUnit = isLiquid ? 'ml' : 'gram';
@@ -236,7 +234,7 @@ export async function removeDishFromShoppingList(userId: string, dishId: string)
     }
   }
 
-  // עדכון preparedDishes
+  // update preparedDishes
   const currentCount = shoppingList.preparedDishes.get(dishId) || 0;
   if (currentCount <= 1) {
     shoppingList.preparedDishes.delete(dishId);
