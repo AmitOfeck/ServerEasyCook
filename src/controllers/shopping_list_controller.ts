@@ -64,7 +64,30 @@ export async function addCombinedDishesToList(req: Request, res: Response) {
       res.status(500).send({ error: error.message });
     }
   }
-export function removeDishFromList(arg0: string, authMiddleware: (req: Request, res: Response, next: import("express").NextFunction) => void, removeDishFromList: any) {
-    throw new Error('Function not implemented.');
-}
+
+
+  export async function removeDishFromList(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = (req as any).userId;
+      const { dishId } = req.body;
+  
+      if (!dishId) {
+        res.status(400).send({ error: 'dishId is required' });
+        return;
+      }
+  
+      const updatedList = await ShoppingListService.removeDishFromShoppingList(userId, dishId);
+      res.status(200).send(updatedList);
+  
+    } catch (err: any) {
+      console.error(err);
+  
+      if (err.message.includes('not found')) {
+        res.status(404).send({ error: err.message });
+      } else {
+        res.status(500).send({ error: 'Internal Server Error' });
+      }
+    }
+  }
+  
 

@@ -196,3 +196,55 @@ export async function replaceItem(userId: string, item: IShoppingItem) {
   await shoppingList.save();
   return shoppingList;
 }
+
+
+export async function removeDishFromShoppingList(userId: string, dishId: string) {
+  const shoppingList = await ShoppingListModel.findOne({ userId });
+  if (!shoppingList) {
+    throw new Error('Shopping list not found');
+  }
+
+  const dish = await DishModel.findById(dishId);
+  if (!dish) {
+    throw new Error('Dish not found');
+  }
+
+  if (!shoppingList.preparedDishes || !shoppingList.preparedDishes.has(dishId)) {
+    throw new Error('Dish not found in prepared dishes');
+  }
+
+  for (const ingredient of dish.ingredients) {
+    const ingredientBaseQty = convertToBaseUnit(ingredient.unit, ingredient.quantity);
+
+    const itemIndex = shoppingList.items.findIndex(item => item.name === ingredient.name);
+    if (itemIndex === -1) {
+      continue; // אין מה להחסיר אם המרכיב לא קיים
+    }
+
+    const existingItem = shoppingList.items[itemIndex];
+    const existingBaseQty = convertToBaseUnit(existingItem.unit, existingItem.quantity);
+
+    const updatedBaseQty = existingBaseQty - ingredientBaseQty;
+
+    if (updatedBaseQty <= 0) {
+      shoppingList.items.splice(itemIndex, 1); // מוחק את המוצר
+    } else {
+      const isLiquid = existingItem.unit === 'ml' || existingItem.unit === 'liter';
+      const baseUnit = isLiquid ? 'ml' : 'gram';
+      const normalized = normalizeUnit(existingItem.name, baseUnit, updatedBaseQty);
+      shoppingList.items[itemIndex] = normalized;
+    }
+  }
+
+  // עדכון preparedDishes
+  const currentCount = shoppingList.preparedDishes.get(dishId) || 0;
+  if (currentCount <= 1) {
+    shoppingList.preparedDishes.delete(dishId);
+  } else {
+    shoppingList.preparedDishes.set(dishId, currentCount - 1);
+  }
+
+  await shoppingList.save();
+  return shoppingList;
+}
+
