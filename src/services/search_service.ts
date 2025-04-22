@@ -44,7 +44,7 @@ export async function saveDishes(dishes: any[]): Promise<void> {
 // --- ChatGPT API Integration ---
 
 const openai = new OpenAI({
- apiKey: "",
+  apiKey: process.env.API_KEY || '',
 });
 
 export function buildGPTPrompt(criteria: SearchCriteria): string {
