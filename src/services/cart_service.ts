@@ -5,6 +5,17 @@ import { convertToBaseUnit } from '../utils/unitNormalizer';
 import { getNearbyStores } from '../services/wolt_service';
 import { getCoordinates } from '../utils/cordinates';
 import { createSuperIfNotExists, getProductsFromCacheOrWolt } from './super_service';
+import Bottleneck from 'bottleneck';
+
+const limiter = new Bottleneck({
+  maxConcurrent: 5,
+  minTime: 200, // minimum time between each request
+});
+
+const getProductsWithRateLimit = async (storeSlug: string, itemName: string) => {
+  const result = await limiter.schedule(() => getProductsFromCacheOrWolt(storeSlug, itemName));
+  return result;
+};
 
 const calculateNeededUnits = (productUnitInfo: string, itemUnit: string, itemQuantity: number): number => {
   const [productQtyStr, productUnit] = productUnitInfo.split(" ");
@@ -14,7 +25,7 @@ const calculateNeededUnits = (productUnitInfo: string, itemUnit: string, itemQua
 };
 
 const processItemToCartProduct = async (item: IShoppingItem, storeSlug: string): Promise<ICartProduct | null> => {
-  const products = await getProductsFromCacheOrWolt(storeSlug, item.name);
+  const products = await getProductsWithRateLimit(storeSlug, item.name);
   if (products.length === 0) return null;
   const bestProduct = products.reduce((min, p) => (p.price < min.price ? p : min), products[0]);
   const neededUnits = calculateNeededUnits(bestProduct.unit_info, item.unit, item.quantity);
