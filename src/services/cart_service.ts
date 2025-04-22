@@ -5,11 +5,22 @@ import { IShoppingItem, IShoppingList } from '../models/shopping_list_model';
 import { convertToBaseUnit } from '../utils/unitNormalizer';
 import { getNearbyStores, searchProductInStore } from '../services/wolt_service';
 import { getCoordinates } from '../utils/cordinates';
-import { buildGetRelevantProductsGPTPrompt, callChatGPT } from '../utils/gpt';
+import { buildGetRelevantProductsGPTPrompt, sendPromptToChatGPT } from '../utils/gpt';
+
+async function callChatGetRelevantProducs(prompt: string): Promise<string[]> {
+  try {
+    const rawJson = await sendPromptToChatGPT(prompt, "You are an assistant that filters product names for recipes.");
+    const parsed = JSON.parse(rawJson);
+    return Array.isArray(parsed) ? parsed.map(p => p.name) : [];
+  } catch (error) {
+    console.error('Error extracting product names:', error);
+    return [];
+  }
+}
 
 const filterRelevantProducts = async (products: ISuperProduct[], query: string): Promise<ISuperProduct[]> => {
   const prompt = buildGetRelevantProductsGPTPrompt(products, query);
-  const relevantNames: string[] = await callChatGPT(prompt);
+  const relevantNames: string[] = await callChatGetRelevantProducs(prompt);
   return products.filter(product => relevantNames.includes(product.name));
 };
 
