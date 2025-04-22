@@ -22,15 +22,25 @@ export const searchProductInStore = async (storeSlug: string, productName: strin
     const url = `https://consumer-api.wolt.com/consumer-api/consumer-assortment/v1/venues/slug/${storeSlug}/assortment/items/search?language=en`;
     const response = await axios.post(url, { q: productName });
 
-    return response.data.items.map((item: any) => ({
-      itemId: item.id,
-      name: item.name,
-      price: item.price / 100,
-      unit_info: item.unit_info,
-      max_quantity_per_purchase: item.max_quantity_per_purchase,
-    })).slice(0, 20);
+    return response.data.items
+      .filter((item: any) => 
+        item.id && 
+        item.name && 
+        item.price !== undefined && 
+        item.unit_info && 
+        item.max_quantity_per_purchase !== undefined
+      )
+      .map((item: any) => ({
+        itemId: item.id,
+        name: item.name,
+        price: item.price / 100,
+        unit_info: item.unit_info,
+        max_quantity_per_purchase: item.max_quantity_per_purchase,
+      }))
+      .slice(0, 20);
   } catch (error) {
     console.error(`Error searching for product ${productName} in ${storeSlug}:`, error);
     return [];
   }
 };
+

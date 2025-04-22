@@ -6,13 +6,14 @@ export interface ISuperProduct {
     max_quantity_per_purchase: number;
     unit_info: string;
     price: number;
+    createdAt: Date;
 }
 
 export interface Isuper {
     _id?: ObjectId;
     name: string;
     slug: string;
-    products: Isuper[];
+    products: ISuperProduct[];
 }
 
 const SuperProductSchema = new Schema<ISuperProduct>(
@@ -31,7 +32,7 @@ const superSchema = new mongoose.Schema<Isuper>({
   name: { type: String, required: true },
   slug: { type: String, required: true },
   products: { type: [SuperProductSchema], default: [] },
-});
+}, { versionKey: false });
 
-const Super = mongoose.model<Isuper>('Users', superSchema);
+const Super = mongoose.model<Isuper>('Supers', superSchema);
 export default Super;

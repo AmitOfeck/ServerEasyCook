@@ -1,28 +1,10 @@
 import { ICart, ICartProduct } from '../models/cart_model';
-import { Isuper, ISuperProduct } from '../models/super_model';
 import { IAddress } from '../models/user_model';
 import { IShoppingItem, IShoppingList } from '../models/shopping_list_model';
 import { convertToBaseUnit } from '../utils/unitNormalizer';
-import { getNearbyStores, searchProductInStore } from '../services/wolt_service';
+import { getNearbyStores } from '../services/wolt_service';
 import { getCoordinates } from '../utils/cordinates';
-import { buildGetRelevantProductsGPTPrompt, sendPromptToChatGPT } from '../utils/gpt';
-
-async function callChatGetRelevantProducs(prompt: string): Promise<string[]> {
-  try {
-    const rawJson = await sendPromptToChatGPT(prompt, "You are an assistant that filters product names for recipes.");
-    const parsed = JSON.parse(rawJson);
-    return Array.isArray(parsed) ? parsed.map(p => p.name) : [];
-  } catch (error) {
-    console.error('Error extracting product names:', error);
-    return [];
-  }
-}
-
-const filterRelevantProducts = async (products: ISuperProduct[], query: string): Promise<ISuperProduct[]> => {
-  const prompt = buildGetRelevantProductsGPTPrompt(products, query);
-  const relevantNames: string[] = await callChatGetRelevantProducs(prompt);
-  return products.filter(product => relevantNames.includes(product.name));
-};
+import { createSuperIfNotExists, getProductsFromCacheOrWolt } from './super_service';
 
 const calculateNeededUnits = (productUnitInfo: string, itemUnit: string, itemQuantity: number): number => {
   const [productQtyStr, productUnit] = productUnitInfo.split(" ");
@@ -32,13 +14,9 @@ const calculateNeededUnits = (productUnitInfo: string, itemUnit: string, itemQua
 };
 
 const processItemToCartProduct = async (item: IShoppingItem, storeSlug: string): Promise<ICartProduct | null> => {
-  const products = await searchProductInStore(storeSlug, item.name);
+  const products = await getProductsFromCacheOrWolt(storeSlug, item.name);
   if (products.length === 0) return null;
-
-  const relevant = await filterRelevantProducts(products, item.name);
-  if (relevant.length === 0) return null;
-
-  const bestProduct = relevant.reduce((min, p) => (p.price < min.price ? p : min), relevant[0]);
+  const bestProduct = products.reduce((min, p) => (p.price < min.price ? p : min), products[0]);
   const neededUnits = calculateNeededUnits(bestProduct.unit_info, item.unit, item.quantity);
 
   return {
@@ -80,6 +58,8 @@ export const findCheapestCart = async (shoppingList: IShoppingList, userAddress:
   if (!coordinates) throw "Can't find address";
 
   const stores = await getNearbyStores(coordinates.lat, coordinates.lon);
+  for (const store of stores)
+    await createSuperIfNotExists(store.name, store.slug);
   const carts = await Promise.all(
     stores.map(store =>
       buildCart(shoppingList.items, store.slug, shoppingList.id).catch(err => {
