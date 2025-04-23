@@ -9,6 +9,7 @@ import searchRouter from './routes/search_routes';
 import shoppingListRoutes from './routes/shopping_list_routes';
 import cartRoutes from './routes/cart_routes';
 import cors from 'cors';
+import path from "path";
 
 
 const app = express();
@@ -25,6 +26,8 @@ app.use('/dish', dishRouter);
 app.use('/search', searchRouter);
 app.use('/shopping-list', shoppingListRoutes);
 app.use('/cart', cartRoutes);
+
+app.use('/uploads', express.static(path.join(__dirname, '..', '/uploads')));
 
 mongoose
   .connect(process.env.DB_URL as string) 

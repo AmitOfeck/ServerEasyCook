@@ -47,7 +47,7 @@ const login = async (req: Request, res: Response) => {
         }
         // generate token
         const tokens = generateToken(user._id!);
-        console.log(tokens, "------------")
+
         if (!tokens) {
             res.status(500).send('Server Error');
             return;

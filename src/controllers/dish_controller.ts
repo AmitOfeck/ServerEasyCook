@@ -43,12 +43,15 @@ export async function findMany(req: Request, res: Response) {
         console.log(err);
         res.status(400).send(err);
     }
-}
+}  
 
 export async function insertDish(req: Request, res: Response) {
-
+    
     try {
+        const userId = (req as any).userId
         const dish_body = req.body
+        dish_body.createdBy = userId;
+        console.log(dish_body)
         const created = await DishService.insertDish(dish_body)
         res.status(200).send(created)
     } catch(err: any) {

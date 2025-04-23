@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, Types } from 'mongoose';
 
 export enum Cuisine {
   ITALIAN = 'ITALIAN',
@@ -41,6 +41,8 @@ export interface IDish extends Document {
   dishCalories: number;
   ingredientsCost: number;
   averageDishCost: number;
+  imageUrl: string;
+  createdBy: Types.ObjectId; 
   createdAt: Date;
   updatedAt: Date;
 }
@@ -85,6 +87,12 @@ const DishSchema: Schema = new Schema(
     dishCalories: { type: Number, default: 0 },
     ingredientsCost: { type: Number, default: 0 },
     averageDishCost: { type: Number, default: 0 },
+    imageUrl: { type: String, default: '' },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
   },
   { timestamps: true }
 );
