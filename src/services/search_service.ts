@@ -1,6 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { OpenAI } from 'openai';
 import { Cuisine, Limitation, Level, IDish, DishModel } from '../models/dish_model';
+import * as dotenv from 'dotenv';
+
 
 export interface SearchCriteria {
   name?: string;
@@ -42,9 +44,10 @@ export async function saveDishes(dishes: any[]): Promise<void> {
 }
 
 // --- ChatGPT API Integration ---
+  dotenv.config({ path: `./config/.env.${process.env.NODE_ENV || 'local'}` });
 
 const openai = new OpenAI({
- apiKey: "",
+  apiKey: process.env.OPENAI_API_KEY as string,
 });
 
 export function buildGPTPrompt(criteria: SearchCriteria): string {

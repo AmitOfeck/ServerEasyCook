@@ -1,4 +1,5 @@
 import { OpenAI } from 'openai';
+import * as dotenv from 'dotenv';
 import { ICart, ICartProduct } from '../models/cart_model';
 import { Isuper, ISuperProduct } from '../models/super_model';
 import { IAddress } from '../models/user_model';
@@ -65,9 +66,11 @@ const searchProductInStore = async (storeSlug: string, productName: string): Pro
       return [];
     }
   };
+
+  dotenv.config({ path: `./config/.env.${process.env.NODE_ENV || 'local'}` });
   
 const openai = new OpenAI({
-  apiKey: 'put here - dont commit to code',
+  dotenv.config({ path: `./config/.env.${process.env.NODE_ENV || 'local'}` });
 });
    
    function buildGPTPrompt(products: ISuperProduct[], query: string): string {
