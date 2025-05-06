@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import * as dotenv from 'dotenv';
+dotenv.config({ path: `./config/.env.${process.env.NODE_ENV || 'local'}` });
 import mongoose from 'mongoose';
-dotenv.config()
 import userRouter from './routes/user_routes';
 import dishRouter from './routes/dish_routes'
 import authRouter from './routes/auth_routes';
@@ -13,9 +13,6 @@ import path from "path";
 
 
 const app = express();
-
-dotenv.config({ path: `./config/.env.${process.env.NODE_ENV || 'local'}` });
-
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());

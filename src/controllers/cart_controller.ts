@@ -10,8 +10,7 @@ export async function getBestCart(req: Request, res: Response) {
 
   const user = await UserService.getUserById(userId)
   if(user?.addresses && user.addresses[0] && shoppingList) {
-    const cart = await CartService.findCheapestCart(shoppingList, user?.addresses[0] );
-    console.log(cart)
-    res.status(200).send(cart);
+    const carts = await CartService.findCheapestCart(shoppingList, user?.addresses[0] );
+    res.status(200).send(carts);
   }
 }

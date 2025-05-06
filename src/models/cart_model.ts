@@ -11,6 +11,7 @@ export interface ICart {
     shoppingListId: string;
     products: ICartProduct[];
     superId: string;
+    missingProducts?: string[];
     totalCost: number;
 }
 
