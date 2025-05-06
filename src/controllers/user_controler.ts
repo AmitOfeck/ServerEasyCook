@@ -1,18 +1,36 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import userService from '../services/user_service';
+import * as DishService from '../services/dish_service'
 import { validateFieldsValues } from "../utils/validations";
 import { addressValidators, userValidators } from "../models/user_model";
 import { upload , deleteFile } from "../utils/files"
 import { request } from 'http';
 
-const getUserProfile = async (req: Request, res: Response) => {
+
+const getUserProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const user = await userService.getUserById(req.params.id);
-        res.status(200).send(user);
+        const userId = (req as any).userId
+        const user = await userService.getUserById(userId);
+        
+        if (!user) {
+            res.status(404).json({ message: "User not found" });
+            return;
+        }
+
+        const dishes = await DishService.findByCreator(userId);
+        console.log(dishes);
+        const profile = {
+            ...user.toObject(),
+            dishes,
+        };
+
+        res.status(200).json(profile);
     } catch (err) {
-        res.status(400).send(err);
+        console.error('Error in getUserProfile:', err);
+        res.status(500).json({ message: 'Failed to fetch profile', error: err });
     }
 };
+
 
 const register = async (req: Request, res: Response) => {
     try {
@@ -31,7 +49,7 @@ const register = async (req: Request, res: Response) => {
 };
 
 const updateUser = async (req: Request, res: Response): Promise<void> => {
-    const userId = req.params.id;
+    const userId = (req as any).userId
 
     try {
         const existingUser = await userService.getUserById(userId);
@@ -41,7 +59,6 @@ const updateUser = async (req: Request, res: Response): Promise<void> => {
         }
 
         const updateData = { ...req.body };
-
         if (req.file) {
             updateData.profileImage = `/uploads/${req.file.filename}`;
 

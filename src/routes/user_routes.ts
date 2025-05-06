@@ -45,11 +45,11 @@ const validateRegister = async (req: Request, res: Response, next: NextFunction)
     next();
 };
 
-router.get("/:id", userController.getUserProfile);
+router.get("/profile", authMiddleware, userController.getUserProfile);
 
 router.post("/register", upload.single("profileImage"), validateRegister, userController.register);
 
-router.patch("/:id", upload.single("profileImage"), userController.updateUser);
+router.put("/update-profile", authMiddleware, upload.single("profileImage"), userController.updateUser);
 
 router.post("/favorite/:dishId", authMiddleware, userController.addFavoriteDish);
 
