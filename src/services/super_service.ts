@@ -1,7 +1,18 @@
 import Super from "../models/super_model";
 import { ISuperProduct } from "../models/super_model";
-import { buildGetRelevantProductsGPTPrompt, sendPromptToChatGPT } from "../utils/gpt";
+import { buildGetBulkRelevantProductsCacheGPTPrompt, buildGetBulkRelevantProductsWoltGPTPrompt, sendPromptToChatGPT } from "../utils/gpt";
 import { searchProductInStore } from "./wolt_service";
+import Bottleneck from 'bottleneck';
+
+export const limiter = new Bottleneck({
+  maxConcurrent: 10,
+  minTime: 200, // minimum time between each request
+});
+
+export interface IrelevantProducts {
+    productName: string;
+    products: ISuperProduct[];
+}
 
 const isProductFresh = (createdAt: Date): boolean => {
   const now = new Date();
@@ -10,21 +21,49 @@ const isProductFresh = (createdAt: Date): boolean => {
   return diffHours < 24;
 };
 
-const callChatGetRelevantProducts = async (prompt: string): Promise<string[]> => {
+const callChatGetRelevantProducts = async (prompt: string): Promise<{ productName: string, relevantProducts: string[] }[]> => {
   try {
     const rawJson = await sendPromptToChatGPT(prompt, "You are an assistant that filters product names for recipes.");
     const parsed = JSON.parse(rawJson);
-    return Array.isArray(parsed) ? parsed.map(p => p.name) : [];
+    return parsed;
   } catch (error) {
     console.error("Error extracting product names:", error);
     return [];
   }
 };
 
-const filterRelevantProducts = async (products: ISuperProduct[], query: string): Promise<ISuperProduct[]> => {
-  const prompt = buildGetRelevantProductsGPTPrompt(products, query);
-  const relevantNames = await callChatGetRelevantProducts(prompt);
-  return products.filter(product => relevantNames.includes(product.name));
+const filterBulkRelevantProductsWolt = async (products: ISuperProduct[][], queries: string[]): Promise<IrelevantProducts[]> => {
+  const prompt = buildGetBulkRelevantProductsWoltGPTPrompt(products, queries);
+  const relevantProducts = await callChatGetRelevantProducts(prompt);
+
+  // Now, filter each list of products based on the relevant names
+  return products.map((productList, index) => {
+    const queryName = queries[index];
+    const relevantNames = relevantProducts.find(rp => rp.productName === queryName)?.relevantProducts || [];
+
+    const filteredProducts = productList.filter(product => relevantNames.includes(product.name));
+
+    return {
+      productName: queryName,
+      products: filteredProducts
+    };
+  });
+};
+
+const filterBulkRelevantProductsCache = async (products: ISuperProduct[], queries: string[]): Promise<IrelevantProducts[]> => {
+  const prompt = buildGetBulkRelevantProductsCacheGPTPrompt(products, queries);
+  const relevantProducts = await callChatGetRelevantProducts(prompt);
+
+  // Now, filter each list of products based on the relevant names
+  return queries.map((query, index) => {
+    const relevantNames = relevantProducts.find(rp => rp.productName === query)?.relevantProducts || [];
+    const filteredProducts = products.filter(product => relevantNames.includes(product.name));
+
+    return {
+      productName: query,
+      products: filteredProducts
+    };
+  });
 };
 
 const updateSuperWithNewProducts = async (superDoc: any, newProducts: ISuperProduct[]): Promise<void> => {
@@ -46,54 +85,83 @@ const updateSuperWithNewProducts = async (superDoc: any, newProducts: ISuperProd
   }
 };
 
-export const getProductsFromCacheOrWolt = async (storeSlug: string, productName: string): Promise<ISuperProduct[]> => {
+export const getProductsFromCacheOrWolt = async (storeSlug: string, productNames: string[]): Promise<IrelevantProducts[]> => {
   try {
     const superDoc = await Super.findOne({ slug: storeSlug });
     const now = new Date();
 
-    let freshProducts: ISuperProduct[] = [];
+    let cacheRelevantProducts: IrelevantProducts[] = [];
 
     if (superDoc && superDoc.products.length > 0) {
       const validProducts = superDoc.products.filter(p => isProductFresh(p.createdAt));
 
+      // Remove expired products from DB if any
       if (validProducts.length !== superDoc.products.length) {
         superDoc.products = validProducts;
         await superDoc.save();
         console.log("♻️ Removed expired products from DB");
       }
 
-      freshProducts = await filterRelevantProducts(validProducts, productName);
-      if (freshProducts.length > 0) {
-        console.log("🔁 Using fresh cached products");
-        return freshProducts;
+      // Filter the relevant products from cache
+      cacheRelevantProducts = await filterBulkRelevantProductsCache(validProducts, productNames);
+
+      // If we found relevant fresh products in cache, return them
+      if (cacheRelevantProducts.length > 0) {
+        console.log("🔁 Using fresh cached products - ", cacheRelevantProducts.map(p => p.productName)); 
       }
     }
 
-    // Fetch from Wolt API if no fresh products
-    const products = await searchProductInStore(storeSlug, productName);
+    // Identify missing products by comparing the product names from cache
+    const missingProducts = productNames.filter(pName => 
+      !cacheRelevantProducts.some((p: IrelevantProducts) => p.productName === pName)
+    );
 
-    const newProducts: ISuperProduct[] = products.map((item: any) => ({
-      itemId: item.itemId,
-      name: item.name,
-      price: item.price / 100,
-      unit_info: item.unit_info,
-      max_quantity_per_purchase: item.max_quantity_per_purchase,
-      createdAt: now,
-    }));
+    if (missingProducts.length > 0) {
+      console.log(`🔍 Missing products in cache, fetching from Wolt: ${missingProducts.join(", ")}`);
+      
+      // Use the bulk function to get relevant products from Wolt for missing products
+      const productPromises = missingProducts.map(productName =>
+        limiter.schedule(() => searchProductInStore(storeSlug, productName))
+      );
 
-    if (superDoc) {
-      await updateSuperWithNewProducts(superDoc, newProducts);
-    } else {
-      console.log("📦 Wolt products fetched, but super not found in DB");
+      // Wait for all product search promises to resolve
+      const productLists = await Promise.all(productPromises);
+
+      const newProducts: ISuperProduct[][] = productLists.map((productList: any[]) =>
+        productList.map((item: any) => ({
+          itemId: item.itemId,
+          name: item.name,
+          price: item.price,
+          unit_info: item.unit_info,
+          max_quantity_per_purchase: item.max_quantity_per_purchase,
+          createdAt: now,
+        }))
+      );
+      
+
+      if (superDoc) {
+        // Update Super with new products from Wolt
+        updateSuperWithNewProducts(superDoc, newProducts.flat());
+      } else {
+        console.log("📦 Wolt products fetched, but super not found in DB");
+      }
+
+      // Filter the relevant new products fetched from Wolt
+      const woltRelevantNewProducts = await filterBulkRelevantProductsWolt(newProducts, missingProducts);
+    
+      return woltRelevantNewProducts.concat(cacheRelevantProducts);
+    }
+    else {
+      return cacheRelevantProducts; 
     }
 
-    const relevant = await filterRelevantProducts(newProducts, productName);
-    return relevant;
+    return []; // Return an empty array if no products are found
   } catch (error) {
     console.error("❌ Failed to fetch products:", error);
     return [];
   }
 };
+
 
 export const createSuperIfNotExists = async (name: string, slug: string) => {
   try {

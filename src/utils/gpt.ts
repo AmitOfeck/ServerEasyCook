@@ -6,18 +6,52 @@ const openai = new OpenAI({
   apiKey: process.env.API_KEY || '',
 });
 
-export function buildGetRelevantProductsGPTPrompt(products: ISuperProduct[], query: string): string {
-  const options = products.map(product => product.name).join(",\n   ");
-  return `I want to make a recipe - I search for a product in the store:
-          Product name: ${query},
-          Store product options: 
-          ${options}
-          What products from the options are relevant to my search? Use common sense and narrow the list down.
+export function buildGetBulkRelevantProductsWoltGPTPrompt(products: ISuperProduct[][], queries: string[]): string {
+  const input = queries.map((query, i) => ({
+    productName: query,
+    searchResults: products[i].map(p => p.name),
+  }));
 
-          IMPORTANT: Return ONLY a valid JSON array in the following format, without any additional text or markdown:
+  return `You are helping select relevant products for a recipe.
+          I'm giving you an input in the following format:
           [
             {
-              "name": string
+              "productName": string,
+              "searchResults": string[]
+            },
+            ...
+          ]
+
+          Input:
+          ${JSON.stringify(input, null, 2)}
+
+          For each productName, select which products from the searchResults are relevant to the search. Use common sense and match products closely.
+
+          IMPORTANT: Return ONLY a valid JSON array of objects in this format, without any extra text or markdown:
+          [
+            {
+              "productName": string,
+              "relevantProducts": string[]
+            },
+            ...
+          ]`;
+}
+
+export function buildGetBulkRelevantProductsCacheGPTPrompt(products: ISuperProduct[], queries: string[]): string {
+  const options = products.map(p => p.name);
+
+  return `You are helping select relevant products for a recipe.
+          Products names: ${queries.join(", ")},
+          Store product options: 
+          ${options}
+
+          For each productName, select which products from the options are relevant to the search. Use common sense and match products closely.
+
+          IMPORTANT: Return ONLY a valid JSON array of objects in this format, without any extra text or markdown:
+          [
+            {
+              "productName": string,
+              "relevantProducts": string[]
             },
             ...
           ]`;

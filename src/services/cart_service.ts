@@ -4,18 +4,7 @@ import { IShoppingItem, IShoppingList } from '../models/shopping_list_model';
 import { convertToBaseUnit } from '../utils/unitNormalizer';
 import { getNearbyStores } from '../services/wolt_service';
 import { getCoordinates } from '../utils/cordinates';
-import { createSuperIfNotExists, getProductsFromCacheOrWolt } from './super_service';
-import Bottleneck from 'bottleneck';
-
-const limiter = new Bottleneck({
-  maxConcurrent: 5,
-  minTime: 200, // minimum time between each request
-});
-
-const getProductsWithRateLimit = async (storeSlug: string, itemName: string) => {
-  const result = await limiter.schedule(() => getProductsFromCacheOrWolt(storeSlug, itemName));
-  return result;
-};
+import { createSuperIfNotExists, getProductsFromCacheOrWolt, IrelevantProducts } from './super_service';
 
 const calculateNeededUnits = (productUnitInfo: string, itemUnit: string, itemQuantity: number): number => {
   const [productQtyStr, productUnit] = productUnitInfo.split(" ");
@@ -24,42 +13,36 @@ const calculateNeededUnits = (productUnitInfo: string, itemUnit: string, itemQua
   return Math.ceil(requiredQty / productQty);
 };
 
-const processItemToCartProduct = async (item: IShoppingItem, storeSlug: string): Promise<ICartProduct | null> => {
-  const products = await getProductsWithRateLimit(storeSlug, item.name);
-  if (products.length === 0) return null;
-  const bestProduct = products.reduce((min, p) => (p.price < min.price ? p : min), products[0]);
-  const neededUnits = calculateNeededUnits(bestProduct.unit_info, item.unit, item.quantity);
+const processItemsToCartProducts = async (items: string[], storeSlug: string): Promise<{products:ICartProduct[], missingProducts:string[]}> => {
+  const products = await getProductsFromCacheOrWolt(storeSlug, items);
+  const cartProducts: ICartProduct[] = [];
+  const missingProducts: string[] = [];
 
-  return {
-    itemId: bestProduct.itemId,
-    quantity: neededUnits,
-    price: bestProduct.price * neededUnits,
-  };
+  for (const product of products) {
+    if (product.products.length === 0) {
+      missingProducts.push(product.productName);
+      continue;
+    }
+    const bestProduct = product.products.reduce((min, p) => (p.price < min.price ? p : min), product.products[0]);
+    const neededUnits = calculateNeededUnits(bestProduct.unit_info, product.productName, 1);
+    cartProducts.push({
+      itemId: bestProduct.itemId,
+      quantity: neededUnits,
+      price: bestProduct.price * neededUnits,
+    });
+  }
+  
+  return {products:cartProducts, missingProducts};
 };
 
 const buildCart = async (items: IShoppingItem[], storeSlug: string, shoppingListId: string): Promise<ICart | null> => {
   const cart: ICart = { shoppingListId, products: [], superId: storeSlug, totalCost: 0 };
-  const missingProducts: string[] = [];
 
-  const cartProducts = await Promise.all(items.map(async (item) => {
-    try {
-      const product = await processItemToCartProduct(item, storeSlug);
-      if (!product) {
-        missingProducts.push(item.name);
-        return null;
-      }
-      return product;
-    } catch (error) {
-      console.error(`Error processing item '${item.name}':`, error);
-      missingProducts.push(item.name);
-      return null;
-    }
-  }));
+  const cartProducts = await processItemsToCartProducts(items.map(i => i.name), storeSlug);
 
-  const validProducts = cartProducts.filter(Boolean) as ICartProduct[];
-  cart.products.push(...validProducts);
-  cart.totalCost = validProducts.reduce((total, p) => total + p.price, 0);
-  if (missingProducts.length > 0) cart.missingProducts = missingProducts;
+  cart.totalCost = cartProducts.products.reduce((total, p) => total + p.price, 0);
+  cart.products = cartProducts.products;
+  if (cartProducts.missingProducts.length > 0) cart.missingProducts = cartProducts.missingProducts;
 
   return cart;
 };
