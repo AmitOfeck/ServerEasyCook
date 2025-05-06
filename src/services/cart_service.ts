@@ -4,7 +4,7 @@ import { IShoppingItem, IShoppingList } from '../models/shopping_list_model';
 import { convertToBaseUnit } from '../utils/unitNormalizer';
 import { getNearbyStores } from '../services/wolt_service';
 import { getCoordinates } from '../utils/cordinates';
-import { createSuperIfNotExists, getProductsFromCacheOrWolt, IrelevantProducts } from './super_service';
+import { createSuperIfNotExists, getProductsFromCacheOrWolt } from './super_service';
 
 const calculateNeededUnits = (productUnitInfo: string, itemUnit: string, itemQuantity: number): number => {
   const [productQtyStr, productUnit] = productUnitInfo.split(" ");
