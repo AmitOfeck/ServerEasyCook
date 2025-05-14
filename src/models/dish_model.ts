@@ -5,14 +5,12 @@ export enum Cuisine {
   CHINESE = 'CHINESE',
   INDIAN = 'INDIAN',
   MEXICAN = 'MEXICAN',
-  // Add more as needed
 }
 
 export enum Limitation {
   VEGETARIAN = 'VEGETARIAN',
   VEGAN = 'VEGAN',
   GLUTEN_FREE = 'GLUTEN_FREE',
-  // Add more as needed
 }
 
 export enum Level {
@@ -21,6 +19,7 @@ export enum Level {
   HARD = 'HARD',
 }
 
+export type VariantType = 'original' | 'healthy' | 'cheap';
 
 export interface IIngredient {
   name: string;
@@ -42,7 +41,11 @@ export interface IDish extends Document {
   ingredientsCost: number;
   averageDishCost: number;
   imageUrl: string;
-  createdBy: Types.ObjectId; 
+  createdBy: Types.ObjectId;
+  parentDish?: Types.ObjectId;
+  healthyVariant?: Types.ObjectId | null;
+  cheapVariant?: Types.ObjectId | null;
+  variantType: VariantType;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,7 +53,7 @@ export interface IDish extends Document {
 const IngredientSchema: Schema = new Schema(
   {
     name: { type: String, required: true },
-    unit: { type: String, default: "" },
+    unit: { type: String, default: '' },
     quantity: { type: Number, default: 0 },
     cost: { type: Number, default: 0 },
   },
@@ -66,21 +69,9 @@ const DishSchema: Schema = new Schema(
       match: /^[A-Za-z0-9\s,\.'\-]+$/,
     },
     price: { type: Number, required: true, min: 0, max: 1000 },
-    cuisine: {
-      type: String,
-      required: true,
-      enum: Object.values(Cuisine),
-    },
-    limitation: {
-      type: String,
-      required: true,
-      enum: Object.values(Limitation),
-    },
-    level: {
-      type: String,
-      required: true,
-      enum: Object.values(Level),
-    },
+    cuisine: { type: String, required: true, enum: Object.values(Cuisine) },
+    limitation: { type: String, required: true, enum: Object.values(Limitation) },
+    level: { type: String, required: true, enum: Object.values(Level) },
     ingredients: { type: [IngredientSchema], default: [] },
     details: { type: String, default: '' },
     recipe: { type: String, default: '' },
@@ -88,9 +79,14 @@ const DishSchema: Schema = new Schema(
     ingredientsCost: { type: Number, default: 0 },
     averageDishCost: { type: Number, default: 0 },
     imageUrl: { type: String, default: '' },
-    createdBy: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    parentDish: { type: Schema.Types.ObjectId, ref: 'Dish', default: null },
+    healthyVariant: { type: Schema.Types.ObjectId, ref: 'Dish', default: null },
+    cheapVariant: { type: Schema.Types.ObjectId, ref: 'Dish', default: null },
+    variantType: {
+      type: String,
+      enum: ['original', 'healthy', 'cheap'],
+      default: 'original',
       required: true,
     },
   },
@@ -99,4 +95,3 @@ const DishSchema: Schema = new Schema(
 
 export const DishModel = mongoose.model<IDish>('Dish', DishSchema);
 export default DishModel;
-
