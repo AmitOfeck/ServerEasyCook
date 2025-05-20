@@ -36,6 +36,7 @@ export const searchProductInStore = async (storeSlug: string, productName: strin
         price: item.price / 100,
         unit_info: item.unit_info,
         max_quantity_per_purchase: item.max_quantity_per_purchase,
+        image_url: item.images[0]?.url || '', // Assuming the first image is the main one
       }))
       .slice(0, 20);
   } catch (error) {

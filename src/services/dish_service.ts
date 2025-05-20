@@ -3,7 +3,7 @@ import { transformToHealthy, transformToCheap } from "./dish_transform_service";
 import { OpenAI } from 'openai';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
+  apiKey: process.env.API_KEY!,
 });
 
 export async function findByCreator(userId: string) {

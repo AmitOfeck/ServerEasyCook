@@ -20,7 +20,7 @@ export interface IUser {
     favoriteDishes: mongoose.Types.ObjectId[];
 }
 
-const addressSchema = new mongoose.Schema<IAddress>({
+export const addressSchema = new mongoose.Schema<IAddress>({
     city: { type: String, required: true },
     street: { type: String, required: true },
     building: { type: Number, required: true }
