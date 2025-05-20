@@ -1,4 +1,5 @@
 import mongoose, { ObjectId, Schema } from "mongoose";
+import { addressSchema, IAddress } from "./user_model";
 
 export interface ICartProduct {
     itemId: string;
@@ -13,6 +14,9 @@ export interface ICart {
     superId: string;
     missingProducts?: string[];
     totalCost: number;
+    address: IAddress; 
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 export const CartProductSchema = new Schema<ICartProduct>(
@@ -30,6 +34,7 @@ const cartSchema = new mongoose.Schema<ICart>({
   products: { type: [CartProductSchema], default: [] },
   superId: { type: String, required: true },
   totalCost: { type: Number, required: true },
+  address: { type: addressSchema, required: true },
 }, { timestamps: true });
 
 const Cart = mongoose.model<ICart>('Cart', cartSchema);

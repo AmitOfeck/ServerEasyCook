@@ -6,6 +6,8 @@ import { getNearbyStores } from '../services/wolt_service';
 import { getCoordinates } from '../utils/cordinates';
 import { createSuperIfNotExists, getProductsFromCacheOrWolt } from './super_service';
 
+const CART_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
+
 const calculateNeededUnits = (productUnitInfo: string, itemUnit: string, itemQuantity: number): number => {
   const [productQtyStr, productUnit] = productUnitInfo.split(" ");
   const productQty = convertToBaseUnit(productUnit, Number(productQtyStr));
@@ -35,8 +37,8 @@ const processItemsToCartProducts = async (items: string[], storeSlug: string): P
   return {products:cartProducts, missingProducts};
 };
 
-const buildCart = async (items: IShoppingItem[], storeSlug: string, shoppingListId: string): Promise<ICart | null> => {
-  const cart: ICart = { shoppingListId, products: [], superId: storeSlug, totalCost: 0 };
+const buildCart = async (items: IShoppingItem[], storeSlug: string, shoppingListId: string, userAddress: IAddress): Promise<ICart | null> => {
+  const cart: ICart = { shoppingListId, products: [], superId: storeSlug, totalCost: 0 , address: userAddress };
 
   const cartProducts = await processItemsToCartProducts(items.map(i => i.name), storeSlug);
 
@@ -47,7 +49,42 @@ const buildCart = async (items: IShoppingItem[], storeSlug: string, shoppingList
   return cart;
 };
 
+const deleteExpiredCarts = async () => {
+  const cutoff = new Date(Date.now() - CART_TTL);
+
+  await Cart.deleteMany({
+    createdAt: { $lt: cutoff }
+  });
+};
+
+const getCachedCarts = async (
+  shoppingListId: string,
+  shoppingListUpdatTime: Date,
+  userAddress: IAddress
+): Promise<ICart[] | null> => {
+
+  deleteExpiredCarts();
+
+  // Check if there are any cached carts for the given shopping list and address
+  const cachedCarts = await Cart.find({
+    shoppingListId,
+    address: userAddress,
+  }).sort({ totalCost: 1 });
+
+  if (cachedCarts.length === 0) return null;
+
+  // Filter out carts that are older than the shopping list update time
+  const validCarts = cachedCarts.filter(
+    cart => cart.createdAt ? cart.createdAt >= shoppingListUpdatTime : false
+  );
+
+  return validCarts;
+};
+
 export const findCheapestCart = async (shoppingList: IShoppingList, userAddress: IAddress): Promise<ICart[] | null> => {
+  const cachedCarts = await getCachedCarts(shoppingList.id, shoppingList.updatedAt, userAddress);
+  if (cachedCarts && cachedCarts.length > 0) return cachedCarts.splice(0, 3);
+
   const coordinates = await getCoordinates(userAddress);
   if (!coordinates) throw "Can't find address";
 
@@ -56,7 +93,7 @@ export const findCheapestCart = async (shoppingList: IShoppingList, userAddress:
     await createSuperIfNotExists(store.name, store.slug);
   const carts = await Promise.all(
     stores.map(store =>
-      buildCart(shoppingList.items, store.slug, shoppingList.id).catch(err => {
+      buildCart(shoppingList.items, store.slug, shoppingList.id, userAddress).catch(err => {
         console.error(`Error with store ${store.slug}:`, err);
         return null;
       })
