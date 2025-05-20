@@ -1,4 +1,4 @@
-import { ICart, ICartProduct } from '../models/cart_model';
+import Cart, { ICart, ICartProduct } from '../models/cart_model';
 import { IAddress } from '../models/user_model';
 import { IShoppingItem, IShoppingList } from '../models/shopping_list_model';
 import { convertToBaseUnit } from '../utils/unitNormalizer';
@@ -72,5 +72,12 @@ export const findCheapestCart = async (shoppingList: IShoppingList, userAddress:
     return missA !== missB ? missA - missB : a.totalCost - b.totalCost;
   });
 
-  return validCarts.slice(0, 3);
+  const cheapestCarts = validCarts.slice(0, 3);
+  for(let cart of cheapestCarts) {
+    const savedCart = new Cart(cart);
+    await savedCart.save();
+    cart._id = savedCart._id;
+  };
+
+  return cheapestCarts;
 };

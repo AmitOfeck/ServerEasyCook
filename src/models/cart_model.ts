@@ -32,5 +32,5 @@ const cartSchema = new mongoose.Schema<ICart>({
   totalCost: { type: Number, required: true },
 }, { timestamps: true });
 
-const Cart = mongoose.model<ICart>('Users', cartSchema);
+const Cart = mongoose.model<ICart>('Cart', cartSchema);
 export default Cart;
