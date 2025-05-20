@@ -1,12 +1,16 @@
 import mongoose, { ObjectId, Schema } from "mongoose";
 
-export interface ISuperProduct {
+export interface ISuperProduct extends Iproduct {
+    max_quantity_per_purchase: number;
+    createdAt: Date;
+}
+
+export interface Iproduct {
     itemId: string;
     name: string;
-    max_quantity_per_purchase: number;
     unit_info: string;
     price: number;
-    createdAt: Date;
+    image_url: string;
 }
 
 export interface Isuper {
@@ -18,15 +22,15 @@ export interface Isuper {
 
 const SuperProductSchema = new Schema<ISuperProduct>(
     {
-        itemId: { type: String, required: true },
-        name: { type: String, required: true },
-        max_quantity_per_purchase: { type: Number, required: false },
-        unit_info: { type: String, required: true },
-        price: { type: Number, required: true },
+      itemId: { type: String, required: true },
+      name: { type: String, required: true },
+      unit_info: { type: String, required: true },
+      price: { type: Number, required: true },
+      image_url: { type: String, required: true },
+      max_quantity_per_purchase: { type: Number, required: false },
     },
     { timestamps: true }
-);
-  
+);  
 
 const superSchema = new mongoose.Schema<Isuper>({
   name: { type: String, required: true },

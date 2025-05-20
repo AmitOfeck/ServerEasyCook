@@ -31,6 +31,9 @@ const processItemsToCartProducts = async (items: string[], storeSlug: string): P
       itemId: bestProduct.itemId,
       quantity: neededUnits,
       price: bestProduct.price * neededUnits,
+      name: bestProduct.name,
+      unit_info: bestProduct.unit_info,
+      image_url: bestProduct.image_url,
     });
   }
   
