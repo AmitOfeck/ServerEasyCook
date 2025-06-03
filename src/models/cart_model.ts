@@ -13,6 +13,7 @@ export interface ICart {
     superId: string;
     missingProducts?: string[];
     totalCost: number;
+    deliveryPrice: number; 
     address: IAddress; 
     createdAt?: Date;
     updatedAt?: Date;

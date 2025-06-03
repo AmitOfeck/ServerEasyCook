@@ -15,6 +15,7 @@ export interface Iproduct {
 
 export interface Isuper {
     _id?: ObjectId;
+    venueId: string;
     name: string;
     slug: string;
     products: ISuperProduct[];

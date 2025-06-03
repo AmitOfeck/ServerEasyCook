@@ -1,7 +1,7 @@
 import axios from "axios";
 import { IAddress } from "../models/user_model";
 
-interface Coordinates {
+export interface Coordinates {
     lat: number;
     lon: number;
   }
