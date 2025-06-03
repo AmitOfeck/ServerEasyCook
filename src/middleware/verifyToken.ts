@@ -2,35 +2,25 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 
 type Payload = {
-  _id: string;
+  _id?: string;
+  userId?: string;
 };
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.header('Authorization');
-  if (!authHeader) {
-    res.status(401).send('Access Denied');
-    return;
-  }
+  let token = req.header('Authorization');
+  if (!token) { res.status(401).send('Access Denied'); return; }
 
-  const parts = authHeader.split(' ');
-  if (parts.length !== 2 || parts[0] !== 'Bearer') {
-    res.status(401).send('Access Denied');
-    return;
-  }
+  token = token.replace(/^Bearer\s+/i, '');          // ← remove “Bearer ”
 
-  const token = parts[1];
-  const secret = process.env.TOKEN_SECRET;
-  if (!secret) {
-    res.status(500).send('Server Error');
-    return;
-  }
+  if (!process.env.TOKEN_SECRET) { res.status(500).send('Server Error'); return; }
 
-  jwt.verify(token, secret, (err, payload) => {
-    if (err) {
-      res.status(401).send('Access Denied');
-      return;
-    }
-    (req as any).userId = (payload as Payload)._id;
+  jwt.verify(token, process.env.TOKEN_SECRET, (err, payload) => {
+    if (err) { res.status(401).send('Access Denied'); return; }
+
+    const id = (payload as Payload).userId || (payload as Payload)._id;  // ← accept either key
+    if (!id) { res.status(401).send('Access Denied'); return; }
+
+    (req as any).userId = id;
     next();
   });
 };
