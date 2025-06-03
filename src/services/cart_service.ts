@@ -103,8 +103,8 @@ export const findCheapestCart = async (shoppingList: IShoppingList, userAddress:
     )
   );
 
-  const validCarts = carts.filter((c): c is ICart => c !== null);
-  if (validCarts.length === 0) return null;
+  const validCarts = carts.filter((c): c is ICart => c !== null && c.products.length > 0);
+  if (validCarts.length === 0) return [];
 
   validCarts.sort((a, b) => {
     const missA = a.missingProducts?.length || 0;
