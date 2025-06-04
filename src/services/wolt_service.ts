@@ -1,6 +1,14 @@
 import axios from 'axios';
 import { Isuper, ISuperProduct } from '../models/super_model';
 
+interface DeliveryFeeResponse {
+  delivery_fee?: {
+    amount?: {
+      amount: number;
+    };
+  };
+}
+
 export const getNearbyStores = async (lat: number, lon: number): Promise<Isuper[]> => {
   try {
     const url = `https://consumer-api.wolt.com/v1/pages/venue-list/category-grocery?lon=${lon}&lat=${lat}`;
@@ -40,8 +48,8 @@ export const getStoreDeliveryFee = async (venueId: string, lat: number, lon: num
         }
       }
     }
-    const response = await axios.post(url,body);
-    const delivery_fee = response.data?.delivery_fee?.amount?.amount / 100 || 0; 
+    const response = await axios.post<DeliveryFeeResponse>(url, body);
+    const delivery_fee = (response?.data?.delivery_fee?.amount?.amount ?? 0) / 100; 
     return delivery_fee;
   } catch (error) {
     console.error('Error fetching nearby stores:', error);
