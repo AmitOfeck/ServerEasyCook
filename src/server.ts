@@ -1,7 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import * as dotenv from 'dotenv';
-//dotenv.config({ path: `./config/.env.${process.env.NODE_ENV || 'local'}` });
-dotenv.config();
+dotenv.config({ path: `./config/.env.${process.env.NODE_ENV || 'local'}` });
 import mongoose from 'mongoose';
 import userRouter from './routes/user_routes';
 import dishRouter from './routes/dish_routes'
