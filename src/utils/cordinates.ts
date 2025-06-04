@@ -1,15 +1,10 @@
 import axios from "axios";
 import { IAddress } from "../models/user_model";
 
-interface Coordinates {
-  lat: number;
-  lon: number;
-}
-
-interface NominatimResult {
-  lat: string;
-  lon: string;
-}
+export interface Coordinates {
+    lat: number;
+    lon: number;
+  }
 
 export const getCoordinates = async (address: IAddress): Promise<Coordinates | null> => {
   try {

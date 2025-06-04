@@ -118,6 +118,7 @@ export const getProductsFromCacheOrWolt = async (storeSlug: string, productNames
           price: item.price,
           unit_info: item.unit_info,
           max_quantity_per_purchase: item.max_quantity_per_purchase,
+          image_url: item.image_url,
           createdAt: now,
         }))
       );
