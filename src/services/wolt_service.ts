@@ -4,7 +4,7 @@ import { Isuper, ISuperProduct } from '../models/super_model';
 export const getNearbyStores = async (lat: number, lon: number): Promise<Isuper[]> => {
   try {
     const url = `https://consumer-api.wolt.com/v1/pages/venue-list/category-grocery?lon=${lon}&lat=${lat}`;
-    const response = await axios.get(url);
+    const response = await axios.get<any>(url);
     const stores = response.data.sections[0].items.map((store: any) => ({
       name: store.title,
       slug: store.venue.slug,
@@ -52,7 +52,7 @@ export const getStoreDeliveryFee = async (venueId: string, lat: number, lon: num
 export const searchProductInStore = async (storeSlug: string, productName: string): Promise<ISuperProduct[]> => {
   try {
     const url = `https://consumer-api.wolt.com/consumer-api/consumer-assortment/v1/venues/slug/${storeSlug}/assortment/items/search?language=en`;
-    const response = await axios.post(url, { q: productName });
+    const response = await axios.post<any>(url, { q: productName });
 
     return response.data.items
       .filter((item: any) => 
