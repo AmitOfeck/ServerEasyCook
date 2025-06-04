@@ -41,7 +41,7 @@ const filterProducts = (productList: ISuperProduct[], relevantNames: string[]): 
 const filterBulkRelevantProductsCache = async (products: ISuperProduct[], queries: string[]): Promise<IRelevantProducts[]> => {
   const prompt = buildGetBulkRelevantProductsCacheGPTPrompt(products, queries);
   const relevantProducts = await callChatGetRelevantProducts(prompt);
-
+  
   return queries.map(query => {
     const relevantNames = relevantProducts.find(rp => rp.productName === query)?.relevantProducts || [];
     return { productName: query, products: filterProducts(products, relevantNames) };
@@ -94,6 +94,7 @@ export const getProductsFromCacheOrWolt = async (storeSlug: string, productNames
     if (superDoc && superDoc.products.length > 0) {
       const validProducts = await removeExpiredProducts(superDoc);
       cacheRelevantProducts = await filterBulkRelevantProductsCache(validProducts, productNames);
+      cacheRelevantProducts = cacheRelevantProducts.filter(rp => rp.products.length > 0); // Remove empty results
 
       if (cacheRelevantProducts.length > 0) {
         console.log("🔁 Using fresh cached products:", cacheRelevantProducts.map(p => p.productName));
