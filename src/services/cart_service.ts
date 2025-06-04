@@ -86,7 +86,7 @@ const getCachedCarts = async (
 
 export const findCheapestCart = async (shoppingList: IShoppingList, userAddress: IAddress): Promise<ICart[] | null> => {
   const cachedCarts = await getCachedCarts(shoppingList.id, shoppingList.updatedAt, userAddress);
-  if (cachedCarts && cachedCarts.length > 0) return cachedCarts.splice(0, 3);
+  if (cachedCarts && cachedCarts.length > 0) return cachedCarts.splice(0, 5);
 
   const coordinates = await getCoordinates(userAddress);
   if (!coordinates) throw "Can't find address";
@@ -112,7 +112,7 @@ export const findCheapestCart = async (shoppingList: IShoppingList, userAddress:
     return missA !== missB ? missA - missB : a.totalCost - b.totalCost;
   });
 
-  const cheapestCarts = validCarts.slice(0, 3);
+  const cheapestCarts = validCarts.slice(0, 5);
   for(let cart of cheapestCarts) {
     const savedCart = new Cart(cart);
     await savedCart.save();
