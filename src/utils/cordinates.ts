@@ -6,10 +6,15 @@ export interface Coordinates {
     lon: number;
   }
 
+  export interface CoordinatesResponse {
+    lat: string;
+    lon: string;
+  }
+
 export const getCoordinates = async (address: IAddress): Promise<Coordinates | null> => {
   try {
     const fullAddress = `${address.street} ${address.building}, ${address.city}`;
-    const response = await axios.get<NominatimResult[]>(
+    const response = await axios.get<CoordinatesResponse[]>(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}`
     );
 
