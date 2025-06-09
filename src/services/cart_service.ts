@@ -72,7 +72,7 @@ const getCachedCarts = async (
   const cachedCarts = await Cart.find({
     shoppingListId,
     address: userAddress,
-  }).sort({ totalCost: 1 });
+  });
 
   if (cachedCarts.length === 0) return null;
 
@@ -84,9 +84,18 @@ const getCachedCarts = async (
   return validCarts;
 };
 
+const sortCarts = (carts: ICart[]): ICart[] => {
+  carts.sort((a, b) => {
+    const missA = a.missingProducts?.length || 0;
+    const missB = b.missingProducts?.length || 0;
+    return missA !== missB ? missA - missB : a.totalCost - b.totalCost;
+  });
+  return carts;
+}
+
 export const findCheapestCart = async (shoppingList: IShoppingList, userAddress: IAddress): Promise<ICart[] | null> => {
   const cachedCarts = await getCachedCarts(shoppingList.id, shoppingList.updatedAt, userAddress);
-  if (cachedCarts && cachedCarts.length > 0) return cachedCarts.splice(0, 3);
+  if (cachedCarts && cachedCarts.length > 0) return sortCarts(cachedCarts).splice(0, 5);
 
   const coordinates = await getCoordinates(userAddress);
   if (!coordinates) throw "Can't find address";
@@ -105,14 +114,9 @@ export const findCheapestCart = async (shoppingList: IShoppingList, userAddress:
 
   const validCarts = carts.filter((c): c is ICart => c !== null && c.products.length > 0);
   if (validCarts.length === 0) return [];
+    
+  const cheapestCarts = sortCarts(validCarts).slice(0, 5);
 
-  validCarts.sort((a, b) => {
-    const missA = a.missingProducts?.length || 0;
-    const missB = b.missingProducts?.length || 0;
-    return missA !== missB ? missA - missB : a.totalCost - b.totalCost;
-  });
-
-  const cheapestCarts = validCarts.slice(0, 3);
   for(let cart of cheapestCarts) {
     const savedCart = new Cart(cart);
     await savedCart.save();
@@ -121,3 +125,7 @@ export const findCheapestCart = async (shoppingList: IShoppingList, userAddress:
 
   return cheapestCarts;
 };
+function func(carts: any, arg1: any) {
+  throw new Error('Function not implemented.');
+}
+

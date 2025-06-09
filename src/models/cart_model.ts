@@ -36,6 +36,7 @@ export const CartProductSchema = new Schema<ICartProduct>(
 const cartSchema = new mongoose.Schema<ICart>({
   shoppingListId: { type: String, required: true },
   products: { type: [CartProductSchema], default: [] },
+  missingProducts: { type: [String], default: [] },
   superId: { type: String, required: true },
   totalCost: { type: Number, required: true },
   address: { type: addressSchema, required: true },
