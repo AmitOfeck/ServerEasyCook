@@ -19,6 +19,7 @@ export interface Isuper {
     name: string;
     slug: string;
     products: ISuperProduct[];
+    image_url?: string;
 }
 
 const SuperProductSchema = new Schema<ISuperProduct>(

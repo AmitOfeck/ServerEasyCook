@@ -5,6 +5,7 @@ import { convertToBaseUnit } from '../utils/unitNormalizer';
 import { getNearbyStores, getStoreDeliveryFee } from '../services/wolt_service';
 import { Coordinates, getCoordinates } from '../utils/cordinates';
 import { createSuperIfNotExists, getProductsFromCacheOrWolt } from './super_service';
+import { Isuper } from '../models/super_model';
 
 const CART_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
 
@@ -40,11 +41,11 @@ const processItemsToCartProducts = async (items: string[], storeSlug: string): P
   return {products:cartProducts, missingProducts};
 };
 
-const buildCart = async (items: IShoppingItem[], storeSlug: string, StoreId: string, shoppingListId: string, userAddress: IAddress, coordinates: Coordinates): Promise<ICart | null> => {
-  const cart: ICart = { shoppingListId, products: [], superId: storeSlug, totalCost: 0 , deliveryPrice: 0, address: userAddress };
+const buildCart = async (items: IShoppingItem[], store: Isuper, shoppingListId: string, userAddress: IAddress, coordinates: Coordinates): Promise<ICart | null> => {
+  const cart: ICart = { shoppingListId, products: [], superId: store.slug, superImage: store.image_url, totalCost: 0 , deliveryPrice: 0, address: userAddress };
 
-  const cartProducts = await processItemsToCartProducts(items.map(i => i.name), storeSlug);
-  cart.deliveryPrice = await getStoreDeliveryFee(StoreId, coordinates.lat, coordinates.lon);
+  const cartProducts = await processItemsToCartProducts(items.map(i => i.name), store.slug);
+  cart.deliveryPrice = await getStoreDeliveryFee(store.venueId, coordinates.lat, coordinates.lon);
   cart.totalCost = cartProducts.products.reduce((total, p) => total + p.price, 0) + cart.deliveryPrice;
   cart.products = cartProducts.products;
   if (cartProducts.missingProducts.length > 0) cart.missingProducts = cartProducts.missingProducts;
@@ -105,7 +106,7 @@ export const findCheapestCart = async (shoppingList: IShoppingList, userAddress:
     await createSuperIfNotExists(store.name, store.slug);
   const carts = await Promise.all(
     stores.map(store =>
-      buildCart(shoppingList.items, store.slug, store.venueId, shoppingList.id, userAddress, coordinates).catch(err => {
+      buildCart(shoppingList.items, store, shoppingList.id, userAddress, coordinates).catch(err => {
         console.error(`Error with store ${store.slug}:`, err);
         return null;
       })

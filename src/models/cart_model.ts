@@ -11,6 +11,7 @@ export interface ICart {
     shoppingListId: string;
     products: ICartProduct[];
     superId: string;
+    superImage?: string;
     missingProducts?: string[];
     totalCost: number;
     deliveryPrice: number; 
@@ -38,7 +39,9 @@ const cartSchema = new mongoose.Schema<ICart>({
   products: { type: [CartProductSchema], default: [] },
   missingProducts: { type: [String], default: [] },
   superId: { type: String, required: true },
+  superImage: { type: String, default: '', required: false },
   totalCost: { type: Number, required: true },
+  deliveryPrice: { type: Number, required: true, min: 0 },
   address: { type: addressSchema, required: true },
 }, { timestamps: true });
 
