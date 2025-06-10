@@ -46,10 +46,10 @@ async function callChatGenerateDishes(prompt: string, criteria: SearchCriteria):
     return parsed.map((dishObj: any) => ({
       id: uuidv4(),
       name: dishObj.name || 'Unnamed Dish',
-      price: criteria.priceMin ?? 0,
-      cuisine: criteria.cuisine ?? Cuisine.ITALIAN,
-      limitation: criteria.limitation ?? Limitation.VEGETARIAN,
-      level: criteria.level ?? Level.EASY,
+      price: criteria.priceMin || 0,
+      cuisine: criteria.cuisine || Cuisine.NONE,
+      limitation: criteria.limitation || Limitation.NONE,
+      level: criteria.level || Level.EASY,
       ingredients: (dishObj.ingredients || []).map((ing: any) => ({
         name: ing.name || '',
         unit: allowedUnits.includes(ing.unit) ? ing.unit : 'gram',
