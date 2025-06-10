@@ -18,8 +18,9 @@ export const getNearbyStores = async (lat: number, lon: number): Promise<Isuper[
       slug: store.venue.slug,
       delivery_price: store.venue.delivery_price_int / 100,
       venueId: store.venue.id,
+      image_url: store?.image?.url || '',
     }));
-    return stores.slice(0, 20);
+    return stores.slice(0, 10);
   } catch (error) {
     console.error('Error fetching nearby stores:', error);
     return [];
@@ -78,7 +79,7 @@ export const searchProductInStore = async (storeSlug: string, productName: strin
         max_quantity_per_purchase: item.max_quantity_per_purchase,
         image_url: item.images[0]?.url || '', // Assuming the first image is the main one
       }))
-      .slice(0, 20);
+      .slice(0, 10);
   } catch (error) {
     console.error(`Error searching for product ${productName} in ${storeSlug}:`, error);
     return [];
