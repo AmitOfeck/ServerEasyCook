@@ -41,6 +41,7 @@ const cartSchema = new mongoose.Schema<ICart>({
   superId: { type: String, required: true },
   superImage: { type: String, default: '', required: false },
   totalCost: { type: Number, required: true },
+  deliveryPrice: { type: Number, required: true, min: 0 },
   address: { type: addressSchema, required: true },
 }, { timestamps: true });
 
