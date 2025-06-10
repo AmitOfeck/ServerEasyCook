@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
 
 export enum Cuisine {
+  NONE = 'NONE',
   ITALIAN = 'ITALIAN',
   CHINESE = 'CHINESE',
   INDIAN = 'INDIAN',
@@ -8,6 +9,7 @@ export enum Cuisine {
 }
 
 export enum Limitation {
+  NONE = 'NONE',
   VEGETARIAN = 'VEGETARIAN',
   VEGAN = 'VEGAN',
   GLUTEN_FREE = 'GLUTEN_FREE',
