@@ -47,7 +47,7 @@ const validateRegister = async (req: Request, res: Response, next: NextFunction)
 
 router.get("/profile", authMiddleware, userController.getUserProfile);
 
-router.post("/register", upload.single("profileImage"), validateRegister, userController.register);
+router.post("/register", upload.any(), validateRegister, userController.register);
 
 router.put("/update-profile", authMiddleware, upload.single("profileImage"), userController.updateUser);
 

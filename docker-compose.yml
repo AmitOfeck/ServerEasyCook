@@ -7,7 +7,6 @@ services:
       - .env
     depends_on:
       - mongo
-      - postgres
 
   nginx:
     image: nginx:latest
@@ -20,25 +19,11 @@ services:
 
   mongo:
     image: mongo
-    # ports:
-    #   - "21771:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: bartar20@CS
     volumes:
       - mongo-data:/data/db
 
-  postgres:
-    image: postgres
-    # ports:
-    #   - "5433:5432"  # Remove this line
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: bartar20@CS
-      POSTGRES_DB: easycook
-    volumes:
-      - pg-data:/var/lib/postgresql/data
-
 volumes:
   mongo-data:
-  pg-data:

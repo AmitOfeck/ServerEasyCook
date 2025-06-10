@@ -39,7 +39,12 @@ const register = async (req: Request, res: Response) => {
         } else {
             req.body.addresses = [];
         } 
-        req.body.profileImage = req.file?.filename;
+        
+        // Handle optional profile image upload
+        const files = req.files as Express.Multer.File[];
+        const profileImageFile = files?.find(file => file.fieldname === 'profileImage');
+        req.body.profileImage = profileImageFile?.filename;
+        
         const user = await userService.createUser(req.body);
         res.status(200).send(user);
     } catch (err) {
@@ -125,4 +130,4 @@ const addFavoriteDish = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export default { getUserProfile, register , updateUser , addFavoriteDish};
+export default { getUserProfile, register, updateUser , addFavoriteDish};
