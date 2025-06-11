@@ -16,14 +16,14 @@ const generateToken = (_id: mongoose.mongo.BSON.ObjectId): tTokens | null => {
 
   const accessToken = jwt.sign(
     { userId: _id },
-    process.env.TOKEN_SECRET,
-    { expiresIn: ACCESS_EXPIRES }
+    process.env.TOKEN_SECRET as string,
+    { expiresIn: ACCESS_EXPIRES } as jwt.SignOptions
   );
 
   const refreshToken = jwt.sign(
     { userId: _id },
-    process.env.TOKEN_SECRET,
-    { expiresIn: REFRESH_EXPIRES }
+    process.env.TOKEN_SECRET as string,
+    { expiresIn: REFRESH_EXPIRES } as jwt.SignOptions
   );
 
   return { accessToken, refreshToken };
