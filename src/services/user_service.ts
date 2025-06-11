@@ -16,7 +16,7 @@ class UserService {
     
     if(userData.profileImage) {
       const imageUrl = `/uploads/${userData.profileImage}`;
-        userData.profileImage = imageUrl;
+      user.profileImage = imageUrl;
     }
 
     return user.save();
