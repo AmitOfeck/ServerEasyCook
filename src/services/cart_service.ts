@@ -98,7 +98,10 @@ export const findCheapestCart = async (shoppingList: IShoppingList, userAddress:
   if (cachedCarts && cachedCarts.length > 0) return sortCarts(cachedCarts).splice(0, 5);
 
   const coordinates = await getCoordinates(userAddress);
-  if (!coordinates) throw "Can't find address";
+  if (!coordinates) {
+    console.error('Cannot find coordinates for address:', userAddress);
+    return [];
+  }
 
   const stores = await getNearbyStores(coordinates.lat, coordinates.lon);
   for (const store of stores)

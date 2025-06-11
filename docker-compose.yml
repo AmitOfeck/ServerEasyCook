@@ -6,8 +6,7 @@ services:
     env_file:
       - .env
     depends_on:
-      - mongo
-      - postgres
+      - mongo  
 
   nginx:
     image: nginx:latest
@@ -19,7 +18,7 @@ services:
       - server
 
   mongo:
-    image: mongo
+    image: mongo:7
     ports:
       - "21771:27017"
     environment:
@@ -28,17 +27,5 @@ services:
     volumes:
       - mongo-data:/data/db
 
-  postgres:
-    image: postgres
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: bartar20@CS
-      POSTGRES_DB: easycook
-    volumes:
-      - pg-data:/var/lib/postgresql/data
-
 volumes:
   mongo-data:
-  pg-data:
