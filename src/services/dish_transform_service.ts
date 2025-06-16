@@ -31,9 +31,10 @@ export async function transformToHealthy(dish: IDish): Promise<Partial<IDish>> {
     dishCalories: dish.dishCalories,
     ingredientsCost: dish.ingredientsCost,
     averageDishCost: dish.averageDishCost,
+    price: dish.price,
   };
   const prompt = `Make the following dish healthier without changing its identity.  
-Return ONLY a valid JSON object with the same fields (name, ingredients, details, recipe, dishCalories, ingredientsCost, averageDishCost):  
+Return ONLY a valid JSON object with the same fields (name, ingredients, details, recipe, dishCalories, ingredientsCost, averageDishCost, price):  
 ${JSON.stringify(minimal)}`;
   return await callTransform(prompt);
 }
@@ -47,9 +48,10 @@ export async function transformToCheap(dish: IDish): Promise<Partial<IDish>> {
     dishCalories: dish.dishCalories,
     ingredientsCost: dish.ingredientsCost,
     averageDishCost: dish.averageDishCost,
+    price: dish.price,
   };
   const prompt = `Make the following dish cheaper without changing its identity.  
-Return ONLY a valid JSON object with the same fields (name, ingredients, details, recipe, dishCalories, ingredientsCost, averageDishCost):  
+Return ONLY a valid JSON object with the same fields (name, ingredients, details, recipe, dishCalories, ingredientsCost, averageDishCost, price):  
 ${JSON.stringify(minimal)}`;
   return await callTransform(prompt);
 }
