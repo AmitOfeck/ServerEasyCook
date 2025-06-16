@@ -61,12 +61,17 @@ export function buildGenerateRecepiesPrompt(criteria: SearchCriteria): string {
   const { name, priceMin, cuisine, limitation, level, numberOfDishes } = criteria;
   return `Based on the following criteria:
 Name: ${name || 'any'},
-Price: ${priceMin || 'any'},
+Price:"${priceMin || '0'} to ${criteria.priceMax || 'any'} for all recipe in nis",
 Cuisine: ${cuisine || 'any'},
 Dietary Limitations: ${limitation || 'none'},
 Difficulty Level: ${level || 'any'},
-NumberOfDishes: ${numberOfDishes || 'any'},
+NumberOfDishes: ${numberOfDishes || '4'},
 please suggest three unique dish recommendations.
+note:
+ "dishCalories" - per one dish.
+ ingredientsCost - the cost of all ingredients in nis.
+  "averageDishCost" - the average cost of a dish based on the ingredients per one dish in nis.
+  "price" - the price of the all recipe in nis.
 IMPORTANT: Return ONLY a valid JSON array in the following format, without any additional text or markdown:
 [
   {
@@ -76,7 +81,8 @@ IMPORTANT: Return ONLY a valid JSON array in the following format, without any a
     "recipe": string,
     "dishCalories": number,
     "ingredientsCost": number,
-    "averageDishCost": number
+    "averageDishCost": number,
+    "price": number
   },
   ...
 ]`;

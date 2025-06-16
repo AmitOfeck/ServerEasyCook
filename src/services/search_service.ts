@@ -67,7 +67,7 @@ async function callChatGenerateDishes(prompt: string, criteria: SearchCriteria):
     const dishes: Partial<IDish>[] = parsed.map((dishObj: any) => ({
       id: uuidv4(),
       name: dishObj.name || 'Unnamed Dish',
-      price: criteria.priceMin || 0,
+      price: dishObj.price || 0,
       cuisine: criteria.cuisine || Cuisine.NONE,
       limitation: criteria.limitation || Limitation.NONE,
       level: criteria.level || Level.EASY,
