@@ -1,6 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Cuisine, Limitation, Level, IDish, DishModel } from '../models/dish_model';
 import { buildGenerateRecepiesPrompt, sendPromptToChatGPT } from '../utils/gpt';
+import { OpenAI } from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.API_KEY || '',
+ });
 
 export interface SearchCriteria {
   name?: string;
@@ -10,6 +15,22 @@ export interface SearchCriteria {
   limitation?: Limitation;
   level?: Level;
   numberOfDishes?: number;
+}
+
+export async function insertDishImage(d: any) {
+  const imagePrompt = `A delicious and beautifully plated dish called ${d.name}, high-resolution, professional food photography`;
+  try {
+    const imageResponse = await openai.images.generate({
+      model: "dall-e-3",
+      prompt: imagePrompt,
+      size: "1024x1024",
+    });
+    d.imageUrl = imageResponse.data?.[0]?.url ?? '';
+  } catch (err: any) {
+    console.error('Failed to generate dish image:', err?.response?.data || err.message || err);
+    d.imageUrl = '';
+  }
+  return d;
 }
 
 export async function searchInDB(criteria: SearchCriteria): Promise<IDish[]> {
@@ -43,7 +64,7 @@ async function callChatGenerateDishes(prompt: string, criteria: SearchCriteria):
     const parsed = JSON.parse(jsonStr);
     if (!Array.isArray(parsed)) return [];
     const allowedUnits = ['gram', 'kg', 'ml', 'liter'];
-    return parsed.map((dishObj: any) => ({
+    const dishes: Partial<IDish>[] = parsed.map((dishObj: any) => ({
       id: uuidv4(),
       name: dishObj.name || 'Unnamed Dish',
       price: criteria.priceMin || 0,
@@ -63,7 +84,15 @@ async function callChatGenerateDishes(prompt: string, criteria: SearchCriteria):
       averageDishCost: dishObj.averageDishCost || 0,
       createdAt: new Date(),
       updatedAt: new Date(),
+      imageUrl: "",
     }));
+
+    const dishesWithImages = await Promise.all(
+      dishes.map((dish) => insertDishImage(dish))
+    );
+
+    return dishesWithImages;
+
   } catch (error) {
     console.error('Error generating dishes:', error);
     return [];
