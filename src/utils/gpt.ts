@@ -89,7 +89,7 @@ export async function sendPromptToChatGPT(prompt: string, systemMessage: string)
       { role: "system", content: systemMessage },
       { role: "user", content: prompt }
     ],
-    max_tokens: 1000,
+    max_tokens: 2000,
     temperature: 0.7,
   });
 
