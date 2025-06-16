@@ -65,7 +65,7 @@ Price:"${priceMin || '0'} to ${criteria.priceMax || 'any'} for all recipe in nis
 Cuisine: ${cuisine || 'any'},
 Dietary Limitations: ${limitation || 'none'},
 Difficulty Level: ${level || 'any'},
-NumberOfDishes: ${numberOfDishes || '4'},
+NumberOfDishes: ${1 || '1'},
 please suggest three unique dish recommendations.
 note:
  "dishCalories" - per one dish.
