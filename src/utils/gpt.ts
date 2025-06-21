@@ -58,20 +58,36 @@ export function buildGetBulkRelevantProductsCacheGPTPrompt(products: ISuperProdu
 }
 
 export function buildGenerateRecepiesPrompt(criteria: SearchCriteria): string {
-  const { name, priceMin, cuisine, limitation, level, numberOfDishes } = criteria;
-  return `Based on the following criteria:
+  const { name, priceMin, cuisine, limitation, level, numberOfDishes, prompt } = criteria;
+  
+  let basePrompt = '';
+  
+  if (prompt) {
+    basePrompt = `User Request: "${prompt}"
+    
+Please create dishes that match this request while also considering the following constraints:`;
+  } else {
+    basePrompt = 'Based on the following criteria:';
+  }
+  
+  return `${basePrompt}
 Name: ${name || 'any'},
 Price:"${priceMin || '0'} to ${criteria.priceMax || 'any'} for all recipe in nis",
 Cuisine: ${cuisine || 'any'},
 Dietary Limitations: ${limitation || 'none'},
 Difficulty Level: ${level || 'any'},
-NumberOfDishes: ${1 || '1'},
-please suggest three unique dish recommendations.
-note:
+NumberOfDishes: ${numberOfDishes || '1'},
+
+${prompt ? `Make sure the generated dishes align with the user's request: "${prompt}"` : ''}
+
+Please suggest ${numberOfDishes || 1} unique dish recommendation${(numberOfDishes || 1) > 1 ? 's' : ''}.
+
+Note:
  "dishCalories" - per one dish.
  ingredientsCost - the cost of all ingredients in nis.
   "averageDishCost" - the average cost of a dish based on the ingredients per one dish in nis.
   "price" - the price of the all recipe in nis.
+
 IMPORTANT: Return ONLY a valid JSON array in the following format, without any additional text or markdown:
 [
   {
