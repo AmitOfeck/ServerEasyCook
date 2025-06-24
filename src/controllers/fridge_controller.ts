@@ -21,20 +21,26 @@ export async function clearFridge(req: Request, res: Response) {
 }
 
 
-export async function aiIdentifyFridgeItems(req: Request, res: Response) {
-  const userId = (req as any).userId;
-  const images = req.body.images;
-
-  if (!Array.isArray(images) || images.length === 0) {
-    res.status(400).send({ error: "Missing images[]" });
-    return;
+export async function aiIdentifyFridgeItemsFiles(req: Request, res: Response) {
+    const userId = (req as any).userId;
+    const files = req.files as Express.Multer.File[];
+  
+    if (!Array.isArray(files) || files.length === 0) {
+      res.status(400).send({ error: "No files uploaded (expected field 'images')" });
+      return;
+    }
+  
+    try {
+      // convert to base64
+      const images = files.map(file => ({
+        mime: file.mimetype,
+        content: file.buffer.toString('base64')
+      }));
+  
+      const fridge = await FridgeService.identifyFridgeItemsFromImages(userId, images);
+      res.status(200).send(fridge);
+    } catch (err: any) {
+      console.error("AI fridge error:", err);
+      res.status(500).send({ error: "Failed to identify fridge items" });
+    }
   }
-
-  try {
-    const fridge = await FridgeService.identifyFridgeItemsFromImages(userId, images);
-    res.status(200).send(fridge);
-  } catch (err: any) {
-    console.error("AI fridge error:", err);
-    res.status(500).send({ error: "Failed to identify fridge items" });
-  }
-}
