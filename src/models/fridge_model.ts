@@ -1,4 +1,3 @@
-// models/fridge_model.ts
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IFridgeItem {
