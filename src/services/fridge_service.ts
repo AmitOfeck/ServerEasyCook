@@ -171,7 +171,7 @@ export async function deleteItem(userId: string, name: string, unit: string) {
     return false; 
   }
   await fridge.save();
-  return true; 
+  return fridge; 
 }
 
 

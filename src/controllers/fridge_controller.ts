@@ -54,12 +54,12 @@ export async function aiIdentifyFridgeItemsFiles(req: Request, res: Response) {
         res.status(404).send({ message: "Fridge not found" });
         return;
       }
-      res.status(201).send({ message: "Item added successfully", fridge });
+      res.status(201).send({ items: fridge.items });
     } catch (e) {
       res.status(500).send({ message: "Server error" });
     }
   }
-
+  
   export async function updateItem(req: Request, res: Response) {
     const userId = (req as any).userId;
     const { originalName, originalUnit, item } = req.body;
@@ -69,7 +69,7 @@ export async function aiIdentifyFridgeItemsFiles(req: Request, res: Response) {
         res.status(404).send({ message: "Fridge not found" });
         return;
       }
-      res.status(200).send({ message: "Item updated successfully", fridge });
+      res.status(200).send({ items: fridge.items });
     } catch (e: any) {
       if (e?.message === "Item not found") {
         res.status(404).send({ message: "Item not found" });
@@ -78,19 +78,20 @@ export async function aiIdentifyFridgeItemsFiles(req: Request, res: Response) {
       res.status(500).send({ message: "Server error" });
     }
   }
-
-export async function deleteItem(req: Request, res: Response) {
-  const userId = (req as any).userId;
-  const { name, unit } = req.body;
-  try {
-    const result = await FridgeService.deleteItem(userId, name, unit);
-    if (!result) {
-      res.status(404).send({ message: "Item not found" });
-      return;
+  
+  export async function deleteItem(req: Request, res: Response) {
+    const userId = (req as any).userId;
+    const { name, unit } = req.body;
+    try {
+      const fridge = await FridgeService.deleteItem(userId, name, unit);
+      if (!fridge) {
+        res.status(404).send({ message: "Item not found" });
+        return;
+      }
+      res.status(200).send({ items: fridge.items });
+    } catch (e) {
+      res.status(500).send({ message: "Server error" });
     }
-    res.status(200).send({ message: "Item deleted successfully" });
-  } catch (e) {
-    res.status(500).send({ message: "Server error" });
   }
-}
+  
 
