@@ -144,3 +144,34 @@ export async function clearFridge(userId: string) {
   return fridge;
 }
 
+export async function addItem(userId: string, item: IFridgeItem) {
+  const fridge = await FridgeModel.findOne({ userId });
+  if (!fridge) throw new Error("Fridge not found");
+  fridge.items.push(item);
+  await fridge.save();
+  return fridge;
+}
+
+export async function updateItem(userId: string, originalName: string, originalUnit: string, newItem: IFridgeItem) {
+  const fridge = await FridgeModel.findOne({ userId });
+  if (!fridge) throw new Error("Fridge not found");
+  const idx = fridge.items.findIndex(i => i.name === originalName && i.unit === originalUnit);
+  if (idx === -1) throw new Error("Item not found");
+  fridge.items[idx] = newItem;
+  await fridge.save();
+  return fridge;
+}
+
+export async function deleteItem(userId: string, name: string, unit: string) {
+  const fridge = await FridgeModel.findOne({ userId });
+  if (!fridge) throw new Error("Fridge not found");
+  const initialLength = fridge.items.length;
+  fridge.items = fridge.items.filter(i => !(i.name === name && i.unit === unit));
+  if (fridge.items.length === initialLength) {
+    return false; 
+  }
+  await fridge.save();
+  return true; 
+}
+
+
