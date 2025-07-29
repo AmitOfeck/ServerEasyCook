@@ -8,6 +8,10 @@ export async function searchDishes(req: Request, res: Response) {
   try {
     const criteria: SearchCriteria = req.body;
     const userId = (req as any).userId;
+    
+  
+    console.log('Search criteria received:', criteria);
+    
     const dishes = await handleSearchFlow(criteria, userId);
     res.status(200).json(dishes);
   } catch (error) {
