@@ -59,40 +59,36 @@ export function buildGetBulkRelevantProductsCacheGPTPrompt(products: ISuperProdu
 
 export function buildGenerateRecepiesPrompt(criteria: SearchCriteria): string {
   const { name, priceMin, cuisine, limitation, level, numberOfDishes, prompt } = criteria;
-  
-  let basePrompt = '';
-  
-  if (prompt) {
-    basePrompt = `User Request: "${prompt}"
-    
-Please create dishes that match this request while also considering the following constraints:`;
-  } else {
-    basePrompt = 'Based on the following criteria:';
-  }
-  
-  return `${basePrompt}
+
+  const header = prompt
+    ? `User Request: "${prompt}"
+
+Please create dishes that satisfy **all** the constraints below.  
+If any element of the user's request is **irrelevant, contradictory, or impossible** given these
+constraints, safely ignore or adapt that element while still producing the *closest* matching dishes:`
+    : 'Based on the following criteria:';
+
+  return `${header}
 Name: ${name || 'any'},
-Price:"${priceMin || '0'} to ${criteria.priceMax || 'any'} for all recipe in nis",
+Price: "${priceMin || 0} to ${criteria.priceMax || 'any'} for all recipe in NIS",
 Cuisine: ${cuisine || 'any'},
 Dietary Limitations: ${limitation || 'none'},
 Difficulty Level: ${level || 'any'},
-NumberOfDishes: ${numberOfDishes || '1'},
-
-${prompt ? `Make sure the generated dishes align with the user's request: "${prompt}"` : ''}
+NumberOfDishes: ${numberOfDishes || 1},
 
 Please suggest ${numberOfDishes || 1} unique dish recommendation${(numberOfDishes || 1) > 1 ? 's' : ''}.
 
 Note:
- "dishCalories" - per one dish.
- ingredientsCost - the cost of all ingredients in nis.
-  "averageDishCost" - the average cost of a dish based on the ingredients per one dish in nis.
-  "price" - the price of the all recipe in nis.
+- "dishCalories" – calories per single dish  
+- "ingredientsCost" – total cost of ingredients in NIS  
+- "averageDishCost" – average cost per dish in NIS  
+- "price" – total recipe price in NIS
 
 IMPORTANT: Return ONLY a valid JSON array in the following format, without any additional text or markdown:
 [
   {
     "name": string,
-    "ingredients": [{ "name": string, "unit": string , "quantity": number , "cost": number}],
+    "ingredients": [{ "name": string, "unit": string, "quantity": number, "cost": number }],
     "details": string,
     "recipe": string,
     "dishCalories": number,
@@ -103,6 +99,7 @@ IMPORTANT: Return ONLY a valid JSON array in the following format, without any a
   ...
 ]`;
 }
+
 
 export async function sendPromptToChatGPT(prompt: string, systemMessage: string): Promise<string> {
   const response = await openai.chat.completions.create({
