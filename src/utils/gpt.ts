@@ -1,6 +1,7 @@
 import { OpenAI } from 'openai';
 import { ISuperProduct } from '../models/super_model';
 import { SearchCriteria } from '../services/search_service';
+import { IFridgeItem } from '../models/fridge_model'; 
 
 const openai = new OpenAI({
   apiKey: process.env.API_KEY || '',
@@ -57,8 +58,20 @@ export function buildGetBulkRelevantProductsCacheGPTPrompt(products: ISuperProdu
           ]`;
 }
 
-export function buildGenerateRecepiesPrompt(criteria: SearchCriteria): string {
+export function buildGenerateRecepiesPrompt(criteria: SearchCriteria, fridgeItems?: IFridgeItem[]): string {
   const { name, priceMin, cuisine, limitation, level, numberOfDishes, prompt } = criteria;
+
+  let fridgeSection = '';
+  if (fridgeItems && fridgeItems.length > 0) {
+    const fridgeItemsText = fridgeItems.map(item => {
+      if (item.quantity && item.unit) {
+        return `- ${item.name}: ${item.quantity} ${item.unit}`;
+      }
+      return `- ${item.name}`;
+    }).join('\n');
+
+    fridgeSection = `\nAvailable ingredients: ${fridgeItemsText}`;
+  }
 
   const header = prompt
     ? `User Request: "${prompt}"
@@ -75,14 +88,19 @@ Cuisine: ${cuisine || 'any'},
 Dietary Limitations: ${limitation || 'none'},
 Difficulty Level: ${level || 'any'},
 NumberOfDishes: ${numberOfDishes || 1},
+${fridgeSection},
 
-Please suggest ${numberOfDishes || 1} unique dish recommendation${(numberOfDishes || 1) > 1 ? 's' : ''}.
+Please suggest ${numberOfDishes || 1} unique dish recommendation${(numberOfDishes || 1) > 1 ? 's' : ''}.${fridgeItems && fridgeItems.length > 0 ? ' Prioritize recipes that make good use of the available ingredients.' : ''}
 
 Note:
 - "dishCalories" – calories per single dish  
 - "ingredientsCost" – total cost of ingredients in NIS  
 - "averageDishCost" – average cost per dish in NIS  
 - "price" – total recipe price in NIS
+-"cuisine" - the cuisine of the dish from the following options: "ITALIAN","CHINESE","INDIAN","MEXICAN".
+-"level" - the difficulty level of the dish from the following options: "EASY","MEDIUM","HARD".
+-"limitation" - the dietary restriction of the dish if any, from the following options: "GLUTEN_FREE","VEGETARIAN","VEGAN","NONE".
+
 
 IMPORTANT: Return ONLY a valid JSON array in the following format, without any additional text or markdown:
 [
@@ -95,6 +113,9 @@ IMPORTANT: Return ONLY a valid JSON array in the following format, without any a
     "ingredientsCost": number,
     "averageDishCost": number,
     "price": number
+    "cuisine": string,
+    "level": string
+    "limitation": string
   },
   ...
 ]`;
