@@ -3,6 +3,7 @@ import { DishModel } from '../models/dish_model';
 import { ShoppingListModel } from '../models/shopping_list_model';
 import { IShoppingItem } from '../models/shopping_list_model';
 import { normalizeUnit , convertToBaseUnit } from '../utils/unitNormalizer';
+import user_service from './user_service';
 
 export async function getList(userId: string) {
   return await ShoppingListModel.findOne({ userId });
@@ -143,10 +144,9 @@ export async function addCombinedDishesToShoppingList(userId: string, dishIds: s
   }
 
   await shoppingList.save();
+  await user_service.addMadeDishes(userId, dishIds);
   return shoppingList;
 }
-
-
 
 export function mergeSameItems(shoppingList: { items: IShoppingItem[] }) {
   const mergedMap = new Map<string, number>();
@@ -173,7 +173,6 @@ export function mergeSameItems(shoppingList: { items: IShoppingItem[] }) {
   });
 }
 
-
 export async function replaceItem(userId: string, item: IShoppingItem) {
   const shoppingList = await ShoppingListModel.findOne({ userId });
   const normalized = normalizeUnit(item.name, item.unit, item.quantity);
@@ -194,7 +193,6 @@ export async function replaceItem(userId: string, item: IShoppingItem) {
   await shoppingList.save();
   return shoppingList;
 }
-
 
 export async function removeDishFromShoppingList(userId: string, dishId: string) {
   const shoppingList = await ShoppingListModel.findOne({ userId });
@@ -245,4 +243,3 @@ export async function removeDishFromShoppingList(userId: string, dishId: string)
   await shoppingList.save();
   return shoppingList;
 }
-

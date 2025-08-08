@@ -66,6 +66,35 @@ class UserService {
     return user;
 }
 
+async addMadeDishes(userId: string, dishIds: string[]) {
+  if (
+    !mongoose.Types.ObjectId.isValid(userId) ||
+    !dishIds.every(id => mongoose.Types.ObjectId.isValid(id))
+  ) {
+    throw new Error("Invalid userId or dishIds");
+  }
+
+  const userObjectId = new mongoose.Types.ObjectId(userId);
+  const dishObjectIds = dishIds.map(id => new mongoose.Types.ObjectId(id));
+
+  const user = await UserModel.findById(userObjectId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const existingDishIds = new Set(user.madeDishes.map(id => id.toString()));
+
+  const newDishesToAdd = dishObjectIds.filter(
+    id => !existingDishIds.has(id.toString())
+  );
+
+  user.madeDishes.push(...newDishesToAdd);
+
+  await user.save();
+  return user;
+}
+
+  
 }
 
 export default new UserService();
