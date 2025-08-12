@@ -53,4 +53,6 @@ router.put("/update-profile", authMiddleware, upload.single("profileImage"), use
 
 router.post("/favorite/:dishId", authMiddleware, userController.addFavoriteDish);
 
+router.get("/recommended/:userId", authMiddleware, userController.getRecommendedDishes);
+
 export default router;
