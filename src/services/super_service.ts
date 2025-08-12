@@ -68,7 +68,7 @@ const updateSuperWithNewProducts = async (superDoc: any, newProducts: ISuperProd
     if (uniqueProducts.length > 0) {
       superDoc.products.push(...uniqueProducts);
       await superDoc.save();
-      console.log("📝 Updated super with new products");
+      // console.log("📝 Updated super with new products");
     }
   } catch (error) {
     console.error("Error saving super document:", error);
@@ -80,7 +80,7 @@ const removeExpiredProducts = async (superDoc: any): Promise<ISuperProduct[]> =>
   if (validProducts.length !== superDoc.products.length) {
     superDoc.products = validProducts;
     await superDoc.save();
-    console.log("♻️ Removed expired products from DB");
+    // console.log("♻️ Removed expired products from DB");
   }
   return validProducts;
 };
@@ -97,7 +97,7 @@ export const getProductsFromCacheOrWolt = async (storeSlug: string, productNames
       cacheRelevantProducts = cacheRelevantProducts.filter(rp => rp.products.length > 0); // Remove empty results
 
       if (cacheRelevantProducts.length > 0) {
-        console.log("🔁 Using fresh cached products:", cacheRelevantProducts.map(p => p.productName));
+        // console.log("🔁 Using fresh cached products:", cacheRelevantProducts.map(p => p.productName));
       }
     }
 
@@ -106,7 +106,7 @@ export const getProductsFromCacheOrWolt = async (storeSlug: string, productNames
     );
 
     if (missingProducts.length > 0) {
-      console.log(`🔍 Missing products in cache, fetching from Wolt: ${missingProducts.join(", ")}`);
+      // console.log(`🔍 Missing products in cache, fetching from Wolt: ${missingProducts.join(", ")}`);
 
       const productLists = await Promise.all(
         missingProducts.map(name => limiter.schedule(() => searchProductInStore(storeSlug, name)))
@@ -127,7 +127,7 @@ export const getProductsFromCacheOrWolt = async (storeSlug: string, productNames
       if (superDoc) {
         await updateSuperWithNewProducts(superDoc, newProducts.flat());
       } else {
-        console.log("📦 Wolt products fetched, but super not found in DB");
+        // console.log("📦 Wolt products fetched, but super not found in DB");
       }
 
       const woltRelevantNewProducts = await filterBulkRelevantProductsWolt(newProducts, missingProducts);
@@ -145,13 +145,13 @@ export const createSuperIfNotExists = async (name: string, slug: string) => {
   try {
     const existing = await Super.findOne({ slug });
     if (existing) {
-      console.log(`✅ Super '${name}' already exists`);
+      // console.log(`✅ Super '${name}' already exists`);
       return existing;
     }
 
     const newSuper = new Super({ name, slug, products: [] });
     await newSuper.save();
-    console.log(`🆕 Created new super: '${name}'`);
+    // console.log(`🆕 Created new super: '${name}'`);
     return newSuper;
   } catch (error) {
     console.error("❌ Failed to create super:", error);

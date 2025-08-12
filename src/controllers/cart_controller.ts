@@ -4,7 +4,8 @@ import * as ShoppingListService from '../services/shopping_list_service';
 import UserService from '../services/user_service';
 import { IShoppingList } from '../models/shopping_list_model';
 
-export async function getBestCart(req: Request, res: Response) {
+export async function getBestCart(req: Request, res: Response) {    
+  const stepGetBestCartStart = performance.now();
   try {
     const userId = req.params.userId;
     const shoppingList: IShoppingList | null = await ShoppingListService.getList(userId)
@@ -12,6 +13,8 @@ export async function getBestCart(req: Request, res: Response) {
     const user = await UserService.getUserById(userId)
     if(user?.addresses && user.addresses[0] && shoppingList) {
       const carts = await CartService.findCheapestCart(shoppingList, user?.addresses[0] );
+      const stepGetBestCartEnd = performance.now();
+      console.log(`Get Best Cart: ${(stepGetBestCartEnd - stepGetBestCartStart).toFixed(2)}ms`);
       res.status(200).send(carts);
     } else {
       res.status(400).send({ error: 'User address or shopping list not found' });

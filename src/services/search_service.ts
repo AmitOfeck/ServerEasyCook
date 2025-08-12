@@ -62,6 +62,7 @@ if (query.length === undefined) {
 
 async function callChatGenerateDishes(prompt: string, criteria: SearchCriteria): Promise<Partial<IDish>[]> {
   try {
+    const totalStart = performance.now();
     const rawJson = await sendPromptToChatGPT(prompt, 'You are an assistant that suggests dish recommendations.');
     let jsonStr = rawJson.trim();
     if (jsonStr.startsWith('```json')) {
@@ -102,9 +103,12 @@ async function callChatGenerateDishes(prompt: string, criteria: SearchCriteria):
       imageUrl: "",
     }));
 
-    const dishesWithImages = await Promise.all(
+    const stepGenerateDishPicStart = performance.now();
+        const dishesWithImages = await Promise.all(
       dishes.map((dish) => insertDishImage(dish))
     );
+    const stepGenerateDishPicEnd = performance.now();
+    console.log(`generate dish Image: ${(stepGenerateDishPicEnd - stepGenerateDishPicStart).toFixed(2)}ms`);
 
     return dishesWithImages;
 
