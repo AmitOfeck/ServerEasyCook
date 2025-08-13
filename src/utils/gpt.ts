@@ -2,6 +2,7 @@ import { OpenAI } from 'openai';
 import { ISuperProduct } from '../models/super_model';
 import { SearchCriteria } from '../services/search_service';
 import { IFridgeItem } from '../models/fridge_model'; 
+import { IDish } from '../models/dish_model';
 
 const openai = new OpenAI({
   apiKey: process.env.API_KEY || '',
@@ -119,6 +120,33 @@ IMPORTANT: Return ONLY a valid JSON array in the following format, without any a
   },
   ...
 ]`;
+}
+
+export function buildGenerateRecommendedDishesPrompt(
+  madeDishes: IDish[],
+  allDishesFromDB: IDish[],
+  numberOfRecommendations: number = 10
+): string {
+  const madeDishNames = madeDishes.map((dish, i) => `${i + 1}. ${dish.name}`).join('\n');
+  const allDishesList = allDishesFromDB
+    .map((dish, i) => `${i + 1}. ${dish.name} (ID: ${dish._id})`)
+    .join('\n');
+
+  return `
+The user previously cooked the following dishes:
+${madeDishNames}
+
+Below is the full list of available dishes in the database, each with a unique ID:
+${allDishesList}
+
+Your task:
+1. Analyze the user's previous dishes to detect preferences (e.g., ingredients, cuisine, cooking method, dietary restrictions, etc.).
+2. Based on those preferences, select the top ${numberOfRecommendations} most suitable dishes from the database.
+3. Return ONLY their IDs in a valid JSON array, without any explanation, markdown, or extra text.
+
+Example output format:
+["abc123", "xyz789", "dish456"]
+`.trim();
 }
 
 

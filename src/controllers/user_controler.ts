@@ -3,8 +3,8 @@ import userService from '../services/user_service';
 import * as DishService from '../services/dish_service'
 import { validateFieldsValues } from "../utils/validations";
 import { addressValidators, userValidators } from "../models/user_model";
-import { upload , deleteFile } from "../utils/files"
-import { request } from 'http';
+import { deleteFile } from "../utils/files"
+import { IDish } from '../models/dish_model';
 
 
 const getUserProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -110,8 +110,6 @@ const updateUser = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-
-
 const addFavoriteDish = async (req: Request, res: Response): Promise<void> => {
     try {
 
@@ -125,4 +123,14 @@ const addFavoriteDish = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export default { getUserProfile, register , updateUser , addFavoriteDish};
+const getRecommendedDishes = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = req.params.userId;
+        const recommendedDishes: IDish[] = await userService.getRecommendedDishes(userId);
+        res.status(200).json(recommendedDishes);
+    } catch (err) {
+        res.status(500).json({ message: err instanceof Error ? err.message : "An error occurred" });
+    }
+};
+
+export default { getUserProfile, register , updateUser , addFavoriteDish, getRecommendedDishes};
