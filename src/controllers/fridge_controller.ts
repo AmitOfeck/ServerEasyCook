@@ -22,7 +22,6 @@ export async function clearFridge(req: Request, res: Response) {
 
 
 export async function aiIdentifyFridgeItemsFiles(req: Request, res: Response) {
-    const stepaiIdentifyFridgeItemsStart = performance.now();
     const userId = (req as any).userId;
     const files = req.files as Express.Multer.File[];
   
@@ -39,8 +38,6 @@ export async function aiIdentifyFridgeItemsFiles(req: Request, res: Response) {
       }));
   
       const fridge = await FridgeService.identifyFridgeItemsFromImages(userId, images);
-      const stepaiIdentifyFridgeItemsEnd = performance.now();
-      console.log(`Ai Identify Fridge Items: ${(stepaiIdentifyFridgeItemsEnd - stepaiIdentifyFridgeItemsStart).toFixed(2)}ms`);
       res.status(200).send(fridge);
     } catch (err: any) {
       console.error("AI fridge error:", err);

@@ -8,15 +8,8 @@ export async function searchDishes(req: Request, res: Response) {
   try {
     const criteria: SearchCriteria = req.body;
     const userId = (req as any).userId;
-    
-  
     console.log('Search criteria received:', criteria);
-    
-    const stepSearchStart = performance.now();
-    const dishes = await handleSearchFlow(criteria, userId);
-    const stepSearchEnd = performance.now();
-    console.log(`Search: ${(stepSearchEnd - stepSearchStart).toFixed(2)}ms`);
-    
+    const dishes = await handleSearchFlow(criteria, userId);    
     res.status(200).json(dishes);
   } catch (error) {
     console.error('Error during search:', error);
