@@ -102,11 +102,10 @@ async function callChatGenerateDishes(prompt: string, criteria: SearchCriteria):
       imageUrl: "",
     }));
 
-    const stepGenerateDishPicStart = performance.now();
-        const dishesWithImages = await Promise.all(
+    const dishesWithImages = await Promise.all(
       dishes.map((dish) => insertDishImage(dish))
     );
-
+    
     return dishesWithImages;
 
   } catch (error) {
