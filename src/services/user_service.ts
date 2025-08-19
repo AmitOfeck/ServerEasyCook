@@ -49,7 +49,9 @@ class UserService {
     const prompt = buildGenerateRecommendedDishesPrompt(madeDishes, allDishesFromDB);
     const res = await sendPromptToChatGPT(prompt, 'You are an assistant that suggests dish recommendations.');
     
-    return JSON.parse(res);
+    const recommendations = allDishesFromDB.filter(dish => JSON.parse(res).includes(dish._id.toString()));
+
+    return recommendations;
   }
 
   async addFavoriteDish(userId: string, dishId: string) {
