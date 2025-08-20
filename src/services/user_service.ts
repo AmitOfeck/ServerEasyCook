@@ -54,6 +54,18 @@ class UserService {
     return recommendations;
   }
 
+  async getMadeDishes(userId: string): Promise<IDish[]> {
+    const user = await UserModel.findById(userId);
+    const madeDishes = await DishModel.find({ _id: { $in: user?.madeDishes || [] } }).lean();
+    return madeDishes;
+  }
+
+  async getFavoriteDishes(userId: string): Promise<IDish[]> {
+    const user = await UserModel.findById(userId);
+    const favoriteDishes = await DishModel.find({ _id: { $in: user?.favoriteDishes || [] } }).lean();
+    return favoriteDishes;
+  }
+
   async addFavoriteDish(userId: string, dishId: string) {
     if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(dishId)) {
         throw new Error("Invalid userId or dishId");

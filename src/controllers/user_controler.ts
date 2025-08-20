@@ -125,7 +125,7 @@ const addFavoriteDish = async (req: Request, res: Response): Promise<void> => {
 
 const getRecommendedDishes = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId = req.params.userId;
+        const userId = (req as any).userId
         const recommendedDishes: IDish[] = await userService.getRecommendedDishes(userId);
         res.status(200).json(recommendedDishes);
     } catch (err) {
@@ -133,4 +133,25 @@ const getRecommendedDishes = async (req: Request, res: Response): Promise<void> 
     }
 };
 
-export default { getUserProfile, register , updateUser , addFavoriteDish, getRecommendedDishes};
+const getMadeDishes = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req as any).userId
+        const madeDishes: IDish[] = await userService.getMadeDishes(userId);
+        res.status(200).json(madeDishes);
+    } catch (err) {
+        res.status(500).json({ message: err instanceof Error ? err.message : "An error occurred" });
+    }
+};
+
+const getFavoriteDishes = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const userId = (req as any).userId
+        const favoriteDishes: IDish[] = await userService.getFavoriteDishes(userId);
+        res.status(200).json(favoriteDishes);
+    } catch (err) {
+        res.status(500).json({ message: err instanceof Error ? err.message : "An error occurred" });
+    }
+};
+
+
+export default { getUserProfile, register , updateUser , addFavoriteDish, getRecommendedDishes, getMadeDishes, getFavoriteDishes};
