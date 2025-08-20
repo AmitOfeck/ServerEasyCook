@@ -4,6 +4,7 @@ import { buildGenerateRecepiesPrompt, sendPromptToChatGPT } from '../utils/gpt';
 import { getFridge } from './fridge_service'; 
 import { IFridgeItem } from '../models/fridge_model'; 
 import { OpenAI } from 'openai';
+import fs from 'fs';
 
 const openai = new OpenAI({
   apiKey: process.env.API_KEY || '',
@@ -28,8 +29,18 @@ export async function insertDishImage(d: any) {
       model: "dall-e-3",
       prompt: imagePrompt,
       size: "1024x1024",
+      response_format: "b64_json"
     });
-    d.imageUrl = imageResponse.data?.[0]?.url ?? '';
+
+    const b64 = imageResponse.data?.[0]?.b64_json;
+    if (b64) {
+      const buffer = Buffer.from(b64, "base64");
+      fs.writeFileSync(`./uploads/${d.name}.png`, buffer);
+      d.imageUrl = `/uploads/${d.name}.png`;
+    }
+     else {
+      d.imageUrl = "/uploads/default_dish.png";
+    }
   } catch (err: any) {
     console.error('Failed to generate dish image:', err?.response?.data || err.message || err);
     d.imageUrl = '';
