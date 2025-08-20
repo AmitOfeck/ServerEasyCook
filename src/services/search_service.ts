@@ -105,7 +105,7 @@ async function callChatGenerateDishes(prompt: string, criteria: SearchCriteria):
     const dishesWithImages = await Promise.all(
       dishes.map((dish) => insertDishImage(dish))
     );
-
+    
     return dishesWithImages;
 
   } catch (error) {

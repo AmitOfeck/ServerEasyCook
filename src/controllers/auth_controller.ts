@@ -101,6 +101,7 @@ const googleSignin = async (req: Request, res: Response) => {
         password: 'google-signin',
         googleId,
         favoriteDishes: [],
+        madeDishes: [],
       });
     }
 

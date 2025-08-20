@@ -4,7 +4,7 @@ import * as ShoppingListService from '../services/shopping_list_service';
 import UserService from '../services/user_service';
 import { IShoppingList } from '../models/shopping_list_model';
 
-export async function getBestCart(req: Request, res: Response) {
+export async function getBestCart(req: Request, res: Response) {    
   try {
     const userId = req.params.userId;
     const shoppingList: IShoppingList | null = await ShoppingListService.getList(userId)
