@@ -6,6 +6,7 @@ import { getNearbyStores, getStoreDeliveryFee } from '../services/wolt_service';
 import { Coordinates, getCoordinates } from '../utils/cordinates';
 import { createSuperIfNotExists, getProductsFromCacheOrWolt } from './super_service';
 import { Isuper } from '../models/super_model';
+import { AppError } from '../utils/AppError';
 
 const CART_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
 
@@ -101,10 +102,16 @@ export const findCheapestCart = async (shoppingList: IShoppingList, userAddress:
   const coordinates = await getCoordinates(userAddress);
   if (!coordinates) {
     console.error('Cannot find coordinates for address:', userAddress);
-    return [];
+    throw new AppError('Cannot find coordinates for this address. Please make sure the address is correct.', 404);
   }
 
   const stores = await getNearbyStores(coordinates.lat, coordinates.lon);
+
+  if (stores.length === 0) {
+    console.error('No stores found near address - check is wolt is active in your sorruding', userAddress);
+    throw new AppError('No stores found near address. Possibly wolt service is not active in your area', 404);
+  }
+
   for (const store of stores)
     await createSuperIfNotExists(store.name, store.slug);
   const carts = await Promise.all(
