@@ -36,7 +36,9 @@ export async function transformToHealthy(dish: IDish): Promise<Partial<IDish>> {
   const prompt = `Make the following dish healthier without changing its identity.  
 Return ONLY a valid JSON object with the same fields (name, ingredients, details, recipe, dishCalories, ingredientsCost, averageDishCost, price):  
 ${JSON.stringify(minimal)}`;
-  return await callTransform(prompt);
+const healthyDish = await callTransform(prompt);
+healthyDish.name = `${dish.name} - Healthier version`;
+return healthyDish;
 }
 
 export async function transformToCheap(dish: IDish): Promise<Partial<IDish>> {
@@ -53,5 +55,7 @@ export async function transformToCheap(dish: IDish): Promise<Partial<IDish>> {
   const prompt = `Make the following dish cheaper without changing its identity.  
 Return ONLY a valid JSON object with the same fields (name, ingredients, details, recipe, dishCalories, ingredientsCost, averageDishCost, price):  
 ${JSON.stringify(minimal)}`;
-  return await callTransform(prompt);
+const cheaperDish = await callTransform(prompt);
+cheaperDish.name = `${dish.name} - Budget friendly`;
+return cheaperDish;
 }
