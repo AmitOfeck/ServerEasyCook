@@ -16,8 +16,12 @@ class UserService {
     const user = new UserModel( userData );
     
     if(userData.profileImage) {
-      const imageUrl = `/uploads/${userData.profileImage}`;
-      user.profileImage = imageUrl;
+      if (userData.profileImage.startsWith('http://') || userData.profileImage.startsWith('https://')) {
+        user.profileImage = userData.profileImage;
+      } else {
+        const imageUrl = `/uploads/${userData.profileImage}`;
+        user.profileImage = imageUrl;
+      }
     }
 
     return user.save();
@@ -25,7 +29,7 @@ class UserService {
 
   async updateUser(userId: string, updateData: Partial<IUser>) {
     return UserModel.findByIdAndUpdate(userId, updateData, { new: true, runValidators: true });
-}
+  }
 
   async getUserById(userId: string) {
     return UserModel.findById(userId);

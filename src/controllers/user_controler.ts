@@ -62,7 +62,9 @@ const updateUser = async (req: Request, res: Response): Promise<void> => {
         if (req.file) {
             updateData.profileImage = `/uploads/${req.file.filename}`;
 
-            if (existingUser.profileImage) {
+            if (existingUser.profileImage && 
+                !existingUser.profileImage.startsWith('http://') && 
+                !existingUser.profileImage.startsWith('https://')) {
                 deleteFile(existingUser.profileImage); 
             }
         }
