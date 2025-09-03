@@ -69,7 +69,7 @@ const updateUser = async (req: Request, res: Response): Promise<void> => {
             }
         }
 
-        if (req.body.address) {
+        if (req.body.address && Object.keys(JSON.parse(req.body.address)).length > 0 ){
             try {
                 const parsedAddress = JSON.parse(req.body.address);
                 if (!validateFieldsValues(parsedAddress, addressValidators)) {
