@@ -25,7 +25,7 @@ const validateRegister = async (req: Request, res: Response, next: NextFunction)
         return;
     }
 
-    if(!validateFieldsValues(JSON.parse(req.body.address), addressValidators)){
+    if(req.body?.address && !validateFieldsValues(JSON.parse(req.body.address), addressValidators)){
         res.status(400).json({ message: 'Invalid address fields, cannot register user.' });
         return;
     }
