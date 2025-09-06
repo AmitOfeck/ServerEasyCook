@@ -82,38 +82,76 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const googleSignin = async (req: Request, res: Response) => {
   try {
+    console.log('[googleSignin] Starting Google sign-in process');
+    
     const { token } = req.body;
+    if (!token) {
+      console.error('[googleSignin] No token provided');
+      return res.status(400).send('Token is required');
+    }
+
+    if (!process.env.GOOGLE_CLIENT_ID) {
+      console.error('[googleSignin] GOOGLE_CLIENT_ID environment variable not set');
+      return res.status(500).send('Server configuration error');
+    }
+
+    console.log('[googleSignin] Verifying token with Google');
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
+    
     const payload = ticket.getPayload();
-    const email = payload?.email;
-    const googleId = payload?.sub;
+    if (!payload || !payload.email) {
+      console.error('[googleSignin] Invalid token payload');
+      return res.status(400).send('Invalid token');
+    }
 
-    let user = (await userService.getUserByEmail(email!))[0];
+    const email = payload.email;
+    const googleId = payload.sub;
+    console.log(`[googleSignin] Token verified for email: ${email}`);
+
+    let user = (await userService.getUserByEmail(email))[0];
     if (!user) {
+      console.log('[googleSignin] Creating new user');
       user = await userService.createUser({
-        email: email!,
-        name: payload?.name || '',
-        userName: email!.split('@')[0] || '',
-        profileImage: payload?.picture || '',
+        email: email,
+        name: payload.name || '',
+        userName: email.split('@')[0] || '',
+        profileImage: payload.picture || '',
         password: 'google-signin',
         googleId,
         favoriteDishes: [],
         madeDishes: [],
       });
+    } else {
+      console.log('[googleSignin] User found, logging in');
     }
 
     const tokens = generateToken(user._id!);
-    if (!tokens) { res.status(500).send('Server Error'); return; }
+    if (!tokens) { 
+      console.error('[googleSignin] Failed to generate tokens');
+      return res.status(500).send('Server Error'); 
+    }
 
+    console.log('[googleSignin] Success - tokens generated');
     res.status(200).send({
       userId: user._id,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
     });
-  } catch (err) { res.status(500).send(err); }
+  } catch (err: any) { 
+    console.error('[googleSignin] Error:', err.message || err);
+    if (err.message?.includes('audience')) {
+      res.status(400).send('Invalid token audience');
+    } else if (err.message?.includes('Token used too early')) {
+      res.status(400).send('Token used too early');
+    } else if (err.message?.includes('Token used too late')) {
+      res.status(400).send('Token expired');
+    } else {
+      res.status(500).send('Internal server error');
+    }
+  }
 };
 
 export default { login, refresh, googleSignin };
