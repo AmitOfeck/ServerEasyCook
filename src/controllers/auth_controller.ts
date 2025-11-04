@@ -29,23 +29,34 @@ const generateToken = (_id: mongoose.mongo.BSON.ObjectId): tTokens | null => {
   return { accessToken, refreshToken };
 };
 
-const login = async (req: Request, res: Response) => {
+const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = (await userService.getUserByEmail(req.body.email))[0];
-    if (!user) { res.status(400).send('Wrong email or password'); return; }
+    if (!user) { 
+      res.status(400).send('Wrong email or password'); 
+      return; 
+    }
 
     const ok = await bcrypt.compare(req.body.password, user.password);
-    if (!ok) { res.status(400).send('Wrong email or password'); return; }
+    if (!ok) { 
+      res.status(400).send('Wrong email or password'); 
+      return; 
+    }
 
     const tokens = generateToken(user._id!);
-    if (!tokens) { res.status(500).send('Server Error'); return; }
+    if (!tokens) { 
+      res.status(500).send('Server Error'); 
+      return; 
+    }
 
     res.status(200).send({
       userId: user._id,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
     });
-  } catch (err) { res.status(500).send(err); }
+  } catch (err) { 
+    res.status(500).send(err); 
+  }
 };
 
 const verifyRefreshToken = (refreshToken: string | undefined) => {
@@ -64,35 +75,42 @@ const verifyRefreshToken = (refreshToken: string | undefined) => {
   });
 };
 
-const refresh = async (req: Request, res: Response) => {
+const refresh = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = await verifyRefreshToken(req.body.refreshToken);
     const tokens = generateToken(user._id!);
-    if (!tokens) { res.status(500).send('Server Error'); return; }
+    if (!tokens) { 
+      res.status(500).send('Server Error'); 
+      return; 
+    }
 
     res.status(200).send({
       userId: user._id,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
     });
-  } catch { res.status(400).send('Fail'); }
+  } catch { 
+    res.status(400).send('Fail'); 
+  }
 };
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-const googleSignin = async (req: Request, res: Response) => {
+const googleSignin = async (req: Request, res: Response): Promise<void> => {
   try {
     console.log('[googleSignin] Starting Google sign-in process');
     
     const { token } = req.body;
     if (!token) {
       console.error('[googleSignin] No token provided');
-      return res.status(400).send('Token is required');
+      res.status(400).send('Token is required');
+      return;
     }
 
     if (!process.env.GOOGLE_CLIENT_ID) {
       console.error('[googleSignin] GOOGLE_CLIENT_ID environment variable not set');
-      return res.status(500).send('Server configuration error');
+      res.status(500).send('Server configuration error');
+      return;
     }
 
     console.log('[googleSignin] Verifying token with Google');
@@ -104,7 +122,8 @@ const googleSignin = async (req: Request, res: Response) => {
     const payload = ticket.getPayload();
     if (!payload || !payload.email) {
       console.error('[googleSignin] Invalid token payload');
-      return res.status(400).send('Invalid token');
+      res.status(400).send('Invalid token');
+      return;
     }
 
     const email = payload.email;
@@ -131,7 +150,8 @@ const googleSignin = async (req: Request, res: Response) => {
     const tokens = generateToken(user._id!);
     if (!tokens) { 
       console.error('[googleSignin] Failed to generate tokens');
-      return res.status(500).send('Server Error'); 
+      res.status(500).send('Server Error');
+      return;
     }
 
     console.log('[googleSignin] Success - tokens generated');
